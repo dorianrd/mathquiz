@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "427680799387",
+    "project_id": "mathquiz-51f92",
+    "storage_bucket": "mathquiz-51f92.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427680799387:android:1b575c851cfed5c9c6443e",
+        "android_client_info": {
+          "package_name": "com.example.mathquiz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkfozO8xlrW16x3wt9Xto_DmaHsDyQhds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "427680799387-f5n1d2lr0n3kiiunvsen4j246m8rkuch.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mathquiz"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
