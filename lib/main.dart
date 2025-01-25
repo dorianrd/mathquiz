@@ -25,7 +25,7 @@ import 'screens/profile_setup_screen.dart';
 import 'screens/menu/modi/kopf_rechnen.dart';
 
 // Hinzugefügte Screens für Freundschaftsanfragen
-import 'screens/friends/friends_screen.dart';
+// import 'screens/friends/friends_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
