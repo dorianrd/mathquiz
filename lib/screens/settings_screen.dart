@@ -194,10 +194,14 @@ class SettingsScreen extends StatelessWidget {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       await authService.signOut();
+
+      // Ensure we're still in a valid context
       if (!context.mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+
+      // Navigate directly to the login screen, removing all other routes
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+
     } catch (e) {
-      // Fehlerbehandlung
       ErrorNotifier.show(context, 'Fehler beim Abmelden');
       print("Fehler beim Abmelden: $e");
     }

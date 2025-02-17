@@ -1,1 +1,61 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mathquiz-51f92","appId":"1:427680799387:android:1b575c851cfed5c9c6443e","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"mathquiz-51f92","appId":"1:427680799387:ios:d18cb634e4453e8fc6443e","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"mathquiz-51f92","configurations":{"android":"1:427680799387:android:1b575c851cfed5c9c6443e","ios":"1:427680799387:ios:d18cb634e4453e8fc6443e","web":"1:427680799387:web:2968e967c905c402c6443e"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mathquiz-51f92",
+          "appId": "1:427680799387:android:1b575c851cfed5c9c6443e",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "mathquiz-51f92",
+          "appId": "1:427680799387:ios:d18cb634e4453e8fc6443e",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mathquiz-51f92",
+          "configurations": {
+            "android": "1:427680799387:android:1b575c851cfed5c9c6443e",
+            "ios": "1:427680799387:ios:d18cb634e4453e8fc6443e",
+            "web": "1:427680799387:web:2968e967c905c402c6443e"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    },
+    {
+      "source": "mathquiz",
+      "codebase": "mathquiz",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mathquiz/screens/menu/modi/daily_challenge.dart';
 import 'firebase_options.dart';
 
 import 'package:provider/provider.dart';
@@ -23,6 +24,7 @@ import 'screens/profile_setup_screen.dart';
 
 // Spielmodi
 import 'screens/menu/modi/kopf_rechnen.dart';
+import 'screens/menu/modi/daily_challenge.dart';
 
 // Hinzugefügte Screens für Freundschaftsanfragen
 // import 'screens/friends/friends_screen.dart';
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
         '/privacy_policy': (context) => const PrivacyPolicyScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/kopf_rechnen': (context) => const KopfRechnenScreen(),
+        '/daily_challenge': (context) => const DailyChallengeScreen(),
         //'/friends': (context) => const FriendsScreen(), // Hinzugefügt
       },
     );
@@ -99,8 +102,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.deepPurple, // Button-Farbe
         ),
       ),
-      dropdownMenuTheme: DropdownMenuThemeData(
-        textStyle: const TextStyle(color: Colors.black87),
+      dropdownMenuTheme: const DropdownMenuThemeData(
+        textStyle: TextStyle(color: Colors.black87),
       ),
     );
   }
@@ -124,8 +127,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.deepPurple,
         ),
       ),
-      dropdownMenuTheme: DropdownMenuThemeData(
-        textStyle: const TextStyle(color: Colors.white),
+      dropdownMenuTheme: const DropdownMenuThemeData(
+        textStyle: TextStyle(color: Colors.white),
       ),
     );
   }

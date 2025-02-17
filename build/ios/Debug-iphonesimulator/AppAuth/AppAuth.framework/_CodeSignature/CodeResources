@@ -6,7 +6,7 @@
 	<dict>
 		<key>AppAuthCore_Privacy.bundle/Info.plist</key>
 		<data>
-		fu0t8c51Wct7qNC+BD1vwEsV7e8=
+		696y6iOoIRgbaD+0bUlYmeKnrBQ=
 		</data>
 		<key>AppAuthCore_Privacy.bundle/PrivacyInfo.xcprivacy</key>
 		<data>
@@ -166,7 +166,7 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		SjrPxigIoAexaVzTy+OP1c3OwcY=
+		CfPm1+aIXFgYlfMKaRwDbP+0a0w=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -179,11 +179,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			fu0t8c51Wct7qNC+BD1vwEsV7e8=
+			696y6iOoIRgbaD+0bUlYmeKnrBQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			obGzNa3pqqYWl5dNRlDstbd1B7dy1mlEPdLDSvap0rU=
+			XmzXgjNDRa8Afi/zzPFdjteXkUA8UWMCD4y1oKz0JR4=
 			</data>
 		</dict>
 		<key>AppAuthCore_Privacy.bundle/PrivacyInfo.xcprivacy</key>

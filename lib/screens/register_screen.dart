@@ -16,7 +16,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _displayNameController = TextEditingController(); // NEW
 
   bool _isLoading = false;
 
@@ -24,7 +23,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _displayNameController.dispose(); // NEW
     super.dispose();
   }
 
@@ -36,9 +34,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
-      final displayName = _displayNameController.text.trim();
 
-      if (email.isEmpty || password.isEmpty || displayName.isEmpty) {
+      if (email.isEmpty || password.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Bitte alle Felder ausfüllen.')),
         );
@@ -53,14 +50,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (user != null) {
-        // Setze den DisplayName im FirebaseAuth Profil
-        await user.updateDisplayName(displayName);
+        // Initialisiere das vollständige Benutzer-Dokument in Firestore (falls nicht vorhanden)
+        await firestoreService.initializeUserDocumentIfNotExists(user);
 
-        // Initialisiere das vollständige Benutzer-Dokument in Firestore
-        await firestoreService.initializeUserDocument(user);
-
-        // ANSTATT: Navigator.pushReplacementNamed(context, '/home');
-        // => Weiterleitung zum Home- oder Profil-Setup-Bildschirm
+        // Weiterleitung zum Profil-Setup, wo der Name gesetzt wird
         Navigator.pushReplacementNamed(context, '/profile_setup');
       }
     } on FirebaseAuthException catch (e) {
@@ -109,17 +102,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Benutzername TextField (NEW)
-              TextField(
-                controller: _displayNameController,
-                decoration: InputDecoration(
-                  labelText: 'Benutzername',
-                  border: const OutlineInputBorder(),
-                  labelStyle: themeData.textTheme.bodyLarge,
-                ),
-              ),
-              const SizedBox(height: 16),
-
               // E-Mail TextField
               TextField(
                 controller: _emailController,

@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _initializeUserData(User user) async {
     try {
       final firestoreService = Provider.of<FirestoreService>(context, listen: false);
-      await firestoreService.initializeUserDocument(user);
+      await firestoreService.initializeUserDocumentIfNotExists(user);
     } catch (e) {
       print("Fehler bei der Initialisierung der Nutzerdaten: $e");
       // Optional: Weitere Fehlerbehandlung, z.B. Snackbar anzeigen

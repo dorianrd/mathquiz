@@ -1,4 +1,4 @@
-// lib/screens/kopf_rechnen/kopf_rechnen_screen.dart
+// lib/screens/menu/modi/kopf_rechnen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,8 +19,8 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
   final String _gameMode = "kopf_rechnen";
 
   // Leben und Score
-  int _lives = 3; // 3 volle Herzen anfangs
-  int _score = 0; // Score erhöht sich pro richtiger Antwort um 1
+  int _lives = 3;
+  int _score = 0;
 
   // HighScore - geladen aus Firestore
   int _highScore = 0;
@@ -36,9 +36,7 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
   @override
   void initState() {
     super.initState();
-    // Erste Aufgabe generieren
     _currentQuestion = _arithmeticsService.generateQuestion(_selectedLevel);
-    // HighScore laden
     _loadHighScore();
   }
 
@@ -48,7 +46,6 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
     super.dispose();
   }
 
-  // Lade den HighScore aus Firestore für das ausgewählte Level
   Future<void> _loadHighScore() async {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
     try {
@@ -61,22 +58,20 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
     }
   }
 
-  // Wechsel des Levels - solange es nicht gelockt ist
   void _onLevelChanged(String newLevel) {
     if (_difficultyLocked) {
-      return; // Ignorieren, weil gesperrt
+      return;
     }
     setState(() {
       _selectedLevel = newLevel;
-      _score = 0; // Score zurücksetzen
-      _lives = 3; // Leben zurücksetzen
+      _score = 0;
+      _lives = 3;
       _currentQuestion = _arithmeticsService.generateQuestion(_selectedLevel);
       _answerController.clear();
-      _loadHighScore(); // HighScore für neues Level laden
+      _loadHighScore();
     });
   }
 
-  // Sobald wir das erste Mal "Lösen" drücken, locken wir Difficulty
   void _lockDifficultyIfNeeded() {
     if (!_difficultyLocked) {
       setState(() {
@@ -94,7 +89,7 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
       return;
     }
 
-    _lockDifficultyIfNeeded(); // 1. Mal lösen => Difficulty sperren
+    _lockDifficultyIfNeeded();
 
     final isCorrect = _arithmeticsService.checkAnswer(userAnswer);
     if (isCorrect) {
@@ -113,32 +108,27 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
       );
     }
 
-    // Prüfen, ob Leben == 0 => Popup "Neustarten?" 
     if (_lives == 0) {
       await _handleGameOver();
-      return; 
+      return;
     }
 
-    // Neue Aufgabe generieren
     _currentQuestion = _arithmeticsService.generateQuestion(_selectedLevel);
     _answerController.clear();
     setState(() {});
   }
 
-  // Behandlung des Spielendes
   Future<void> _handleGameOver() async {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
 
-    // HighScore prüfen und ggf. aktualisieren
+    // Update score and let storeScore handle highscore update.
+    await firestore.storeScore(_gameMode, _score, _selectedLevel);
     if (_score > _highScore) {
-      _highScore = _score;
-      await firestore.storeScore(_gameMode, _highScore, _selectedLevel);
-    } else {
-      // Trotzdem den Score speichern, um den letzten Score zu aktualisieren
-      await firestore.storeScore(_gameMode, _score, _selectedLevel);
+      setState(() {
+        _highScore = _score;
+      });
     }
 
-    // Game Over Dialog anzeigen
     final result = await showDialog<String>(
       context: context,
       builder: (context) {
@@ -179,46 +169,38 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
     if (result == 'restart') {
       _restartGame();
     } else if (result == 'menu') {
-      // Zurück zum Menü und Score zurückgeben
       Navigator.pop(context, _score);
     }
   }
 
-  // Spiel neu starten
   void _restartGame() {
     setState(() {
       _score = 0;
       _lives = 3;
-      _difficultyLocked = false; // Difficulty wieder freigeben
+      _difficultyLocked = false;
       _currentQuestion = _arithmeticsService.generateQuestion(_selectedLevel);
       _answerController.clear();
-      _loadHighScore(); // HighScore erneut laden
+      _loadHighScore();
     });
   }
 
-  // Score-Text anklickbar -> Popup mit Highscore, Lastscore und Freundesliste
   void _showScoreDialog() async {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
     List<Map<String, dynamic>> globalScores = [];
-    
-    // Lade die globalen Scores der Freunde für das aktuelle Level
+
     try {
       globalScores = await firestore.getGlobalScores(_gameMode, _selectedLevel);
     } catch (e) {
       print("Fehler beim Laden globaler Scores: $e");
     }
 
-    // Lade den letzten Score des Benutzers
-    int lastScore = _score; // Aktueller Score als LastScore
-
-    // Lade den HighScore des Benutzers für das aktuelle Level
+    int lastScore = _score;
     await _loadHighScore();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          // Innenabstand des Inhalts
           contentPadding: const EdgeInsets.all(16.0),
           title: Text(
             'Score Übersicht',
@@ -231,32 +213,32 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
             ),
           ),
           content: SizedBox(
-            width: 350, // Feste Breite des Dialogs
+            width: 350,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start, // Links bündig ausrichten
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Highscore anzeigen mit Einrückung
                   Padding(
-                    padding: const EdgeInsets.only(left: 16.0, top: 2.0, bottom: 2.0),
+                    padding: const EdgeInsets.only(
+                        left: 16.0, top: 2.0, bottom: 2.0),
                     child: Text(
                       'Highscore: $_highScore',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                   ),
-                  // Letzten Score anzeigen mit Einrückung
                   Padding(
-                    padding: const EdgeInsets.only(left: 16.0, top: 2.0, bottom: 2.0),
+                    padding: const EdgeInsets.only(
+                        left: 16.0, top: 2.0, bottom: 2.0),
                     child: Text(
                       'Letzter Score: $lastScore ($_selectedLevel)',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Überschrift "Freunde-Scores" linksbündig und fett
                   Text(
                     'Freunde-Scores:',
                     style: TextStyle(
@@ -268,16 +250,17 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Globale Scores anzeigen mit Einrückung
                   if (globalScores.isNotEmpty)
                     ...globalScores.map((entry) {
                       final name = entry["displayName"] ?? "Unbekannt";
                       final sc = entry["score"] ?? 0;
-                      final diff = entry["difficulty"] ?? "Unbekannt";
+                      final hs = entry["highscore"] ?? 0;
+                      final diff = entry["gamesettings"]?["difficulty"] ?? "Unbekannt";
                       return Padding(
-                        padding: const EdgeInsets.only(left: 16.0, top: 2.0, bottom: 2.0),
+                        padding: const EdgeInsets.only(
+                            left: 16.0, top: 2.0, bottom: 2.0),
                         child: Text(
-                          "$name : $sc ($diff)",
+                          "$name : $sc (Highscore: $hs) ($diff)",
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       );
@@ -305,7 +288,6 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
     );
   }
 
-  // Hilfe-Dialog anzeigen
   void _showHelpDialog() {
     showDialog(
       context: context,
@@ -319,7 +301,8 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
               fontSize: 20,
             ),
           ),
-          content: const Text('Hier finden Sie hilfreiche Informationen zum Spielmodus.'),
+          content: const Text(
+              'Hier finden Sie hilfreiche Informationen zum Spielmodus.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -333,27 +316,25 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Difficulty-States
     final isSelectedBeginner = _selectedLevel == 'Anfänger';
     final isSelectedAdvanced = _selectedLevel == 'Fortgeschritten';
     final isSelectedExpert = _selectedLevel == 'Experte';
 
-    // Farben für ToggleButtons abhängig vom Lock
-    final sliderFill = _difficultyLocked 
-      ? Colors.deepPurple
-      : Theme.of(context).colorScheme.primary;
-    
-    final borderColor = _difficultyLocked
-      ? Colors.deepPurple
-      : Colors.grey;
+    final sliderFill = _difficultyLocked
+        ? Colors.deepPurple
+        : Theme.of(context).colorScheme.primary;
+
+    final borderColor = _difficultyLocked ? Colors.deepPurple : Colors.grey;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Allgemeines Kopfrechnen'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Zurück zum Menü und Score zurückgeben
+          onPressed: () async {
+            final firestore =
+                Provider.of<FirestoreService>(context, listen: false);
+            await firestore.storeScore(_gameMode, _score, _selectedLevel);
             Navigator.pop(context, _score);
           },
         ),
@@ -362,41 +343,44 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Leben + Score
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 3 Herzen
                   Row(
                     children: List.generate(3, (i) {
                       if (i < _lives) {
-                        return const Icon(Icons.favorite, color: Colors.red, size: 28);
+                        return const Icon(Icons.favorite,
+                            color: Colors.red, size: 28);
                       } else {
-                        return const Icon(Icons.favorite_border, color: Colors.red, size: 28);
+                        return const Icon(Icons.favorite_border,
+                            color: Colors.red, size: 28);
                       }
                     }),
                   ),
-                  // Score-Text -> anklickbar
                   InkWell(
                     onTap: _showScoreDialog,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        // Leicht abgehoben, abhängig vom Theme
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[800] // DarkMode => etwas helleres Dunkelgrau
-                            : Colors.grey[200], // LightMode => etwas dunkleres Hellgrau
+                        color: Theme.of(context).brightness ==
+                                Brightness.dark
+                            ? Colors.grey[800]
+                            : Colors.grey[200],
                       ),
                       child: Text(
                         'Score: $_score',
                         style: TextStyle(
-                          // Textfarbe aus dem aktuellen Theme, damit es sich gut abhebt
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          color: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.color,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -406,51 +390,57 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-
-              // ToggleButtons (Difficulty)
-              ToggleButtons(
-                borderRadius: BorderRadius.circular(8),
-                selectedBorderColor: sliderFill,
-                selectedColor: Colors.white,
-                fillColor: sliderFill,
-                borderColor: borderColor,
-                isSelected: [
-                  isSelectedBeginner,
-                  isSelectedAdvanced,
-                  isSelectedExpert,
-                ],
-                onPressed: (int index) {
-                  if (_difficultyLocked) {
-                    // gesperrt -> mach nix
-                    return;
-                  }
-                  String lv;
-                  switch (index) {
-                    case 0: lv = 'Anfänger'; break;
-                    case 1: lv = 'Fortgeschritten'; break;
-                    case 2: lv = 'Experte'; break;
-                    default: lv = 'Anfänger'; break;
-                  }
-                  _onLevelChanged(lv);
-                },
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text('Anfänger'),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text('Fortgeschritten'),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Text('Experte'),
-                  ),
-                ],
+              AbsorbPointer(
+                absorbing: _difficultyLocked,
+                child: ToggleButtons(
+                  borderRadius: BorderRadius.circular(8),
+                  selectedBorderColor: sliderFill,
+                  selectedColor: Colors.white,
+                  fillColor: sliderFill,
+                  borderColor: borderColor,
+                  isSelected: [
+                    isSelectedBeginner,
+                    isSelectedAdvanced,
+                    isSelectedExpert,
+                  ],
+                  onPressed: (int index) {
+                    String lv;
+                    switch (index) {
+                      case 0:
+                        lv = 'Anfänger';
+                        break;
+                      case 1:
+                        lv = 'Fortgeschritten';
+                        break;
+                      case 2:
+                        lv = 'Experte';
+                        break;
+                      default:
+                        lv = 'Anfänger';
+                        break;
+                    }
+                    _onLevelChanged(lv);
+                  },
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Text('Anfänger'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Text('Fortgeschritten'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      child: Text('Experte'),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 32),
-
-              // Aktuelle Aufgabe
               Text(
                 _currentQuestion,
                 textAlign: TextAlign.center,
@@ -460,8 +450,6 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Antwortfeld
               TextField(
                 controller: _answerController,
                 keyboardType: TextInputType.number,
@@ -472,8 +460,6 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Lösen-Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -488,8 +474,6 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // (Optional) Hilfe-Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

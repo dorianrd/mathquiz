@@ -1,5 +1,4 @@
 // lib/screens/menu/menu_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mathquiz/services/firestore_service.dart';
@@ -12,9 +11,12 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
-  // Speichern wir den zuletzt erzielten Score und Schwierigkeit für den Modus KopfRechnen
+  // KopfRechnen-Daten
   int? _lastKopfRechnenScore;
   String? _lastKopfRechnenDifficulty;
+
+  // Daily Challenge current streak (instead of score/highscore)
+  int? _dailyChallengeStreak;
 
   @override
   void initState() {
@@ -25,39 +27,38 @@ class _MenuScreenState extends State<MenuScreen> {
   Future<void> _loadMyScores() async {
     final firestore = Provider.of<FirestoreService>(context, listen: false);
     try {
+      // KopfRechnen-Daten
       final scores = await firestore.getUserScores();
       setState(() {
         if (scores.containsKey("kopf_rechnen")) {
           _lastKopfRechnenScore = scores["kopf_rechnen"]?["score"] ?? 0;
-          _lastKopfRechnenDifficulty = scores["kopf_rechnen"]?["difficulty"] ?? "Anfänger";
+          _lastKopfRechnenDifficulty =
+              scores["kopf_rechnen"]?["gamesettings"]?["difficulty"] ?? "Anfänger";
         } else {
           _lastKopfRechnenScore = 0;
-          _lastKopfRechnenDifficulty = "Anfänger"; // Standard-Difficulty
+          _lastKopfRechnenDifficulty = "Anfänger";
         }
+      });
+      // Daily Challenge-Daten laden (using current streak)
+      final dailyData = await firestore.getDailyChallengeProgress();
+      setState(() {
+        _dailyChallengeStreak = dailyData["streak"] ?? 0;
       });
     } catch (e) {
       print("Fehler beim Laden der Scores: $e");
       setState(() {
         _lastKopfRechnenScore = 0;
         _lastKopfRechnenDifficulty = "Anfänger";
+        _dailyChallengeStreak = 0;
       });
     }
   }
 
-  // Wenn wir vom KopfRechnenScreen zurückkehren (z. B. per Navigator.pop),
-  // können wir hier den Score direkt übernehmen ODER wir laden neu aus DB:
-  // -> Hier zeigen wir eine Variante, in der wir "result" abfragen.
-  // -> Dann aber kannst du optional nochmal _loadMyScores() aufrufen, um DB zu syncen
   Future<void> _openGame(String routeName) async {
     final result = await Navigator.pushNamed(context, routeName);
     if (result is int) {
-      // Der Score, den wir aus KopfRechnenScreen kriegen.
-      // Optional: Hier kannst du FirestoreService.storeScore(...) aufrufen,
-      // falls du den Score manuell speichern möchtest. Aber im KopfRechnenScreen
-      // wird der Score bereits gespeichert, wenn das Spiel endet.
       print("Spiel beendet mit Score $result");
     }
-    // Anschließend neu laden
     await _loadMyScores();
   }
 
@@ -75,7 +76,7 @@ class _MenuScreenState extends State<MenuScreen> {
         'title': 'Daily Challenge',
         'icon': Icons.calendar_today,
         'route': '/daily_challenge',
-        'score': null,
+        'score': _dailyChallengeStreak, // zeigt die aktuelle Streak
         'difficulty': null,
       },
       {
@@ -107,9 +108,14 @@ class _MenuScreenState extends State<MenuScreen> {
           final score = mode['score'];
           final difficulty = mode['difficulty'];
 
-          String scoreText = 'Letzter Score: 0 (Anfänger)';
-          if (score != null && difficulty != null) {
-            scoreText = 'Letzter Score: $score ($difficulty)';
+          String scoreText;
+          if (mode['title'] == 'Daily Challenge') {
+            scoreText = 'Aktuelle Streak: ${score ?? 0}';
+          } else {
+            scoreText = 'Letzter Score: ${score ?? 0}';
+            if (difficulty != null) {
+              scoreText += " ($difficulty)";
+            }
           }
 
           return Card(
@@ -139,12 +145,10 @@ class _MenuScreenState extends State<MenuScreen> {
                               style: const TextStyle(fontSize: 18),
                             ),
                             const SizedBox(height: 8),
-                            // Letzter Score mit Difficulty anzeigen
                             Text(
-                              score != null && difficulty != null
-                                  ? 'Letzter Score: $score ($difficulty)'
-                                  : 'Letzter Score: 0 (Anfänger)',
-                              style: const TextStyle(fontSize: 16, color: Colors.grey),
+                              scoreText,
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.grey),
                             ),
                           ],
                         ),
