@@ -24,10 +24,11 @@ import 'screens/profile_setup_screen.dart';
 
 // Spielmodi
 import 'screens/menu/modi/kopf_rechnen.dart';
-import 'screens/menu/modi/daily_challenge.dart';
 
 // Hinzugefügte Screens für Freundschaftsanfragen
-// import 'screens/friends/friends_screen.dart';
+import 'screens/friends/friends_screen.dart';
+import 'screens/menu/modi/onevone/onevone_game_screen.dart';
+import 'screens/menu/modi/onevone.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,7 +79,9 @@ class MyApp extends StatelessWidget {
         '/settings': (context) => const SettingsScreen(),
         '/kopf_rechnen': (context) => const KopfRechnenScreen(),
         '/daily_challenge': (context) => const DailyChallengeScreen(),
-        //'/friends': (context) => const FriendsScreen(), // Hinzugefügt
+        '/friends': (context) => const FriendsScreen(),
+        '/onevone': (context) => const OneVOneMenuScreen(),
+        '/onevone/onevone_game': (context) => const OneVOneGameScreen(invitation: {},)
       },
     );
   }

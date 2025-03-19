@@ -100,7 +100,7 @@ class AuthService {
       print("Passwort erfolgreich aktualisiert.");
     } catch (e) {
       print("Fehler beim Aktualisieren des Passworts: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -127,7 +127,7 @@ class AuthService {
       print("Reauthentifizierung erfolgreich.");
     } catch (e) {
       print("Fehler bei der Reauthentifizierung: $e");
-      throw e;
+      rethrow;
     }
   }
 }

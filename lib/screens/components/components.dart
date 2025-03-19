@@ -110,10 +110,10 @@ class _ErrorBoxState extends State<ErrorBox>
         decoration: BoxDecoration(
           color: Colors.grey[300], // Leichtes Grau
           borderRadius: BorderRadius.circular(8.0),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               blurRadius: 6.0,
-              offset: const Offset(0, 3),
+              offset: Offset(0, 3),
             ),
           ],
         ),

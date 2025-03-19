@@ -41,7 +41,7 @@ class FriendDetailScreen extends StatelessWidget {
                 //),
                 const SizedBox(height: 24), // Erhöhter Abstand
                 // Button: Duell/1v1-Einladen
-                ElevatedButton(
+                /*ElevatedButton(
                   onPressed: () {
                     // Hier kannst du die Logik zum Einladen zu einem Duell implementieren
                     // Zum Beispiel, eine Spielanfrage senden oder eine Duell-Routine starten
@@ -56,6 +56,7 @@ class FriendDetailScreen extends StatelessWidget {
                     textStyle: const TextStyle(fontSize: 16),
                   ),
                 ),
+                */
                 const SizedBox(height: 24), // Erhöhter Abstand
                 // Button: Freund entfernen
                 ElevatedButton(

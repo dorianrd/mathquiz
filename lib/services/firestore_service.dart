@@ -7,6 +7,8 @@ import 'dart:io';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  // Öffentlicher Getter für _db:
+  FirebaseFirestore get db => _db;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
@@ -188,7 +190,7 @@ class FirestoreService {
       return downloadURL;
     } catch (e) {
       print("Fehler beim Hochladen des Profilbildes: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -206,7 +208,7 @@ class FirestoreService {
       }, SetOptions(merge: true));
     } catch (e) {
       print("Fehler beim Aktualisieren des Profilbildes in Firestore: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -355,6 +357,15 @@ class FirestoreService {
     return {};
   }
 
+  // ------------------- OneVOne Einladungen ------------------- //
+
+  /// Sendet eine 1v1 Einladung in die Datenbank und gibt die Dokumentreferenz zurück.
+  Future<DocumentReference> sendOneVOneInvitation(Map<String, dynamic> invitation) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception("Kein Benutzer angemeldet");
+    return await _db.collection('onevone_invitations').add(invitation);
+  }
+
   // ------------------- Freundschaftsanfragen ------------------- //
 
   // Basiskollektion für Freunde
@@ -482,7 +493,7 @@ class FirestoreService {
       transaction.delete(outgoingRequestRef);
     });
 
-    print("Freundschaftsanfrage von $requesterUserId angenommen.");
+    print("Freundschaftsanfrage von \$requesterUserId angenommen.");
   }
 
   /// Lehnt eine Freundschaftsanfrage ab.
@@ -507,7 +518,7 @@ class FirestoreService {
       transaction.delete(outgoingRequestRef);
     });
 
-    print("Freundschaftsanfrage von $requesterUserId abgelehnt.");
+    print("Freundschaftsanfrage von \$requesterUserId abgelehnt.");
   }
 
   /// Entfernt einen Freund aus der Freundesliste.
@@ -592,7 +603,7 @@ class FirestoreService {
         return null;
       }
     } catch (e) {
-      print("Fehler beim Abrufen der Benutzerdaten: $e");
+      print("Fehler beim Abrufen der Benutzerdaten: \$e");
       return null;
     }
   }

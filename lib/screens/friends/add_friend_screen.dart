@@ -60,7 +60,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
       final result = await FirebaseFirestore.instance
           .collection('users')
           .where('profile.displayName', isGreaterThanOrEqualTo: query)
-          .where('profile.displayName', isLessThanOrEqualTo: query + '\uf8ff')
+          .where('profile.displayName', isLessThanOrEqualTo: '$query\uf8ff')
           .get();
 
       final currentUserId = firestore.getCurrentUserId();
@@ -128,10 +128,10 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
       title: Text(user['displayName']),
       trailing: ElevatedButton(
         onPressed: requestSent ? null : () => _sendFriendRequest(user['uid']),
-        child: Text(requestSent ? 'Anfrage gesendet' : 'Anfrage senden'),
         style: ElevatedButton.styleFrom(
           backgroundColor: requestSent ? Colors.grey : Colors.blue,
         ),
+        child: Text(requestSent ? 'Anfrage gesendet' : 'Anfrage senden'),
       ),
     );
   }

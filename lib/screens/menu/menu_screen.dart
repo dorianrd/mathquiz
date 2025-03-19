@@ -38,7 +38,7 @@ class _MenuScreenState extends State<MenuScreen> {
           _lastKopfRechnenScore = 0;
           _lastKopfRechnenDifficulty = "Anfänger";
         }
-      });
+      }); 
       // Daily Challenge-Daten laden (using current streak)
       final dailyData = await firestore.getDailyChallengeProgress();
       setState(() {
@@ -82,7 +82,7 @@ class _MenuScreenState extends State<MenuScreen> {
       {
         'title': '1v1',
         'icon': Icons.sports_kabaddi,
-        'route': '/1v1',
+        'route': '/onevone',
         'score': null,
         'difficulty': null,
       },
