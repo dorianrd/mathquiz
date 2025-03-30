@@ -7,80 +7,64 @@ import 'dart:io';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-  // Öffentlicher Getter für _db:
   FirebaseFirestore get db => _db;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  /// Gibt das heutige Datum als String im Format YYYY-MM-DD zurück
+  /// Gibt das heutige Datum als String im Format YYYY-MM-DD zurück.
   String getTodayString() {
     final now = DateTime.now();
     return "${now.year.toString().padLeft(4, '0')}-"
-           "${now.month.toString().padLeft(2, '0')}-"
-           "${now.day.toString().padLeft(2, '0')}";
+        "${now.month.toString().padLeft(2, '0')}-"
+        "${now.day.toString().padLeft(2, '0')}";
   }
 
-  /// Holt die heutige Challenge (Frage, Antwort, etc.) aus /daily_challenges/{Heute}
+  /// Holt die heutige Daily Challenge aus der Collection /daily_challenges.
   Future<Map<String, dynamic>> getTodayChallenge() async {
     final today = getTodayString();
     final docRef = _db.collection('daily_challenges').doc(today);
     final snap = await docRef.get();
-
     if (!snap.exists) {
       throw Exception("Noch keine Daily Challenge für $today angelegt!");
     }
     return snap.data() as Map<String, dynamic>;
   }
 
-  /// Initialisiert das Benutzer-Dokument **nur**, wenn es noch nicht existiert.
-  /// So werden bestehende Scores/Streaks nicht bei jedem Login überschrieben.
+  /// Initialisiert das Benutzer-Dokument, falls noch nicht vorhanden.
   Future<void> initializeUserDocumentIfNotExists(User user) async {
     final userDocRef = _db.collection('users').doc(user.uid);
     final docSnap = await userDocRef.get();
-
-    // Nur Standardwerte setzen, falls das Dokument noch nicht existiert
     if (!docSnap.exists) {
-      // Standardwerte
       final Map<String, dynamic> defaultProfile = {
         "displayName": user.displayName ?? "Neuer Benutzer",
         "email": user.email ?? "",
         "profilePicture": "",
       };
-
       final Map<String, dynamic> defaultSettings = {
         "notifications": true,
         "notificationsFriends": true,
         "notificationsGeneral": true,
         "theme": "light",
       };
-
       final Map<String, dynamic> defaultScores = {
         "kopf_rechnen": {
           "score": 0,
           "highscore": 0,
-          "gamesettings": {
-            "difficulty": "Anfänger",
-          },
+          "gamesettings": {"difficulty": "Anfänger"},
         },
         "daily_challenge": {
           "score": 0,
           "highscore": 0,
-          "gamesettings": {
-            "difficulty": "daily",
-          },
-          // Daily progress data wird hier gespeichert.
+          "gamesettings": {"difficulty": "daily"},
           "progress": {
             "done": false,
             "lastDate": "",
             "lives": 3,
             "streak": 0,
             "maxStreak": 0,
-          }
+          },
         },
-        // Weitere Modi können hier hinzugefügt werden
       };
-
-      // Dokument anlegen
       await userDocRef.set({
         "profile": defaultProfile,
         "settings": defaultSettings,
@@ -89,7 +73,7 @@ class FirestoreService {
     }
   }
 
-  /// Holt die UID des aktuellen Benutzers
+  /// Gibt die UID des aktuellen Benutzers zurück.
   String? getCurrentUserId() {
     final user = _auth.currentUser;
     return user?.uid;
@@ -97,18 +81,18 @@ class FirestoreService {
 
   // ------------------- Benutzerprofile und Einstellungen ------------------- //
 
-  /// Benutzereinstellungen abrufen
   Future<Map<String, dynamic>> getUserSettings() async {
     final User? user = _auth.currentUser;
     if (user != null) {
       DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
-        return (doc.data() as Map<String, dynamic>)['settings'] ?? {
-          "notifications": true,
-          "notificationsFriends": true,
-          "notificationsGeneral": true,
-          "theme": "light",
-        };
+        return (doc.data() as Map<String, dynamic>)['settings'] ??
+            {
+              "notifications": true,
+              "notificationsFriends": true,
+              "notificationsGeneral": true,
+              "theme": "light",
+            };
       } else {
         return {
           "notifications": true,
@@ -122,32 +106,28 @@ class FirestoreService {
     }
   }
 
-  /// Benutzereinstellungen aktualisieren
   Future<void> updateUserSettings(Map<String, dynamic> settings) async {
     final User? user = _auth.currentUser;
     if (user != null) {
-      await _db.collection('users').doc(user.uid).set(
-        {
-          "settings": settings,
-        },
-        SetOptions(merge: true),
-      );
+      await _db.collection('users').doc(user.uid).set({
+        "settings": settings,
+      }, SetOptions(merge: true));
     } else {
       throw Exception("Keine angemeldeten Benutzer");
     }
   }
 
-  /// Benutzerprofil abrufen
   Future<Map<String, dynamic>> getUserProfile() async {
     final User? user = _auth.currentUser;
     if (user != null) {
       DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
       if (doc.exists && doc.data() != null) {
-        return (doc.data() as Map<String, dynamic>)['profile'] ?? {
-          "displayName": user.displayName ?? "",
-          "email": user.email ?? "",
-          "profilePicture": "",
-        };
+        return (doc.data() as Map<String, dynamic>)['profile'] ??
+            {
+              "displayName": user.displayName ?? "",
+              "email": user.email ?? "",
+              "profilePicture": "",
+            };
       } else {
         return {
           "displayName": user.displayName ?? "",
@@ -160,30 +140,25 @@ class FirestoreService {
     }
   }
 
-  /// Benutzerprofil aktualisieren
   Future<void> updateUserProfile(Map<String, dynamic> profileData) async {
     final User? user = _auth.currentUser;
     if (user != null) {
-      await _db.collection('users').doc(user.uid).set(
-        {
-          "profile": profileData,
-        },
-        SetOptions(merge: true),
-      );
+      await _db.collection('users').doc(user.uid).set({
+        "profile": profileData,
+      }, SetOptions(merge: true));
     } else {
       throw Exception("Keine angemeldeten Benutzer");
     }
   }
 
-  /// Profilbild hochladen
   Future<String> uploadProfilePicture(File file) async {
     final User? user = _auth.currentUser;
     if (user == null) {
       throw Exception("Keine angemeldeten Benutzer");
     }
-
     try {
-      Reference ref = _storage.ref().child('users').child(user.uid).child('profile_picture.jpg');
+      Reference ref =
+          _storage.ref().child('users').child(user.uid).child('profile_picture.jpg');
       UploadTask uploadTask = ref.putFile(file);
       TaskSnapshot snapshot = await uploadTask;
       String downloadURL = await snapshot.ref.getDownloadURL();
@@ -194,17 +169,12 @@ class FirestoreService {
     }
   }
 
-  /// Benutzerprofilbild aktualisieren
   Future<void> updateProfilePicture(String downloadURL) async {
     final User? user = _auth.currentUser;
     if (user == null) throw Exception("Keine angemeldeten Benutzer");
-
     try {
-      // Aktualisiere den profile-Teil des Dokuments
       await _db.collection('users').doc(user.uid).set({
-        "profile": {
-          "profilePicture": downloadURL,
-        },
+        "profile": {"profilePicture": downloadURL},
       }, SetOptions(merge: true));
     } catch (e) {
       print("Fehler beim Aktualisieren des Profilbildes in Firestore: $e");
@@ -214,59 +184,46 @@ class FirestoreService {
 
   // ------------------- Score-Funktionen ------------------- //
 
-  /// Speichert den Score und die Schwierigkeit für einen bestimmten Modus
-  /// unter dem Pfad: users/{user}/scores/{mode} -> { score, highscore, gamesettings: { difficulty } }
-  Future<void> storeScore(String mode, int score, String difficulty, {bool forceOverwrite = false}) async {
+  Future<void> storeScore(String mode, int score, String difficulty,
+      {bool forceOverwrite = false}) async {
     final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception("Keine angemeldeten Benutzer");
-    }
+    if (user == null) throw Exception("Keine angemeldeten Benutzer");
     final docRef = _db.collection('users').doc(user.uid);
     final docSnap = await docRef.get();
-
     int? oldScore;
     int? oldHighscore;
     if (docSnap.exists && docSnap.data() != null) {
       final data = docSnap.data() as Map<String, dynamic>;
       final scores = data["scores"];
-      if (scores != null && scores[mode] != null && scores[mode] is Map<String, dynamic>) {
+      if (scores != null &&
+          scores[mode] != null &&
+          scores[mode] is Map<String, dynamic>) {
         final modeData = scores[mode] as Map<String, dynamic>;
         oldScore = (modeData["score"] as num?)?.toInt();
         oldHighscore = (modeData["highscore"] as num?)?.toInt();
       }
     }
-
     int newHighscore = (oldHighscore ?? 0) < score ? score : (oldHighscore ?? 0);
-
     await docRef.set({
       "scores": {
         mode: {
           "score": score,
           "highscore": newHighscore,
-          "gamesettings": {
-            "difficulty": difficulty,
-          },
+          "gamesettings": {"difficulty": difficulty},
         },
       },
     }, SetOptions(merge: true));
   }
 
-  /// Lädt die Scores für den aktuell eingeloggten User.
   Future<Map<String, Map<String, dynamic>>> getUserScores() async {
     final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception("Keine angemeldeten Benutzer");
-    }
+    if (user == null) throw Exception("Keine angemeldeten Benutzer");
     final docSnap = await _db.collection('users').doc(user.uid).get();
-    if (!docSnap.exists || docSnap.data() == null) {
-      return {};
-    }
+    if (!docSnap.exists || docSnap.data() == null) return {};
     final data = docSnap.data() as Map<String, dynamic>;
     final scores = data["scores"];
     if (scores == null) return {};
-
     Map<String, Map<String, dynamic>> result = {};
-
     if (scores is Map<String, dynamic>) {
       scores.forEach((key, value) {
         if (value is Map<String, dynamic>) {
@@ -274,11 +231,9 @@ class FirestoreService {
         }
       });
     }
-
     return result;
   }
 
-  /// Lädt die globalen Scores für einen bestimmten Modus und Level.
   Future<List<Map<String, dynamic>>> getGlobalScores(String mode, String level) async {
     final querySnap = await _db.collection('users').get();
     final List<Map<String, dynamic>> result = [];
@@ -288,7 +243,8 @@ class FirestoreService {
       if (scores != null && scores[mode] != null) {
         if (scores[mode] is Map<String, dynamic>) {
           final modeData = scores[mode] as Map<String, dynamic>;
-          if (modeData["gamesettings"] != null && modeData["gamesettings"]["difficulty"] == level) {
+          if (modeData["gamesettings"] != null &&
+              modeData["gamesettings"]["difficulty"] == level) {
             final int scoreVal = (modeData["score"] as num?)?.toInt() ?? 0;
             final int highscoreVal = (modeData["highscore"] as num?)?.toInt() ?? 0;
             String displayName = "";
@@ -311,10 +267,8 @@ class FirestoreService {
     return result;
   }
 
-  // ------------------- Neue Methoden für Daily Challenge Progress ------------------- //
+  // ------------------- Daily Challenge Progress ------------------- //
 
-  /// Aktualisiert die Daily Challenge Fortschrittsdaten unter
-  /// users/{user}/scores/daily_challenge/progress
   Future<void> updateDailyChallengeProgress({
     required bool done,
     required String lastDate,
@@ -333,14 +287,12 @@ class FirestoreService {
             "lives": lives,
             "streak": streak,
             "maxStreak": maxStreak,
-          }
-        }
-      }
+          },
+        },
+      },
     }, SetOptions(merge: true));
   }
 
-  /// Liest die Daily Challenge Fortschrittsdaten aus
-  /// users/{user}/scores/daily_challenge/progress
   Future<Map<String, dynamic>> getDailyChallengeProgress() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception("Keine angemeldeten Benutzer");
@@ -357,18 +309,94 @@ class FirestoreService {
     return {};
   }
 
-  // ------------------- OneVOne Einladungen ------------------- //
+  //---------------------One-Vs-One-Spielmodus---------------------//
 
-  /// Sendet eine 1v1 Einladung in die Datenbank und gibt die Dokumentreferenz zurück.
-  Future<DocumentReference> sendOneVOneInvitation(Map<String, dynamic> invitation) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception("Kein Benutzer angemeldet");
-    return await _db.collection('onevone_invitations').add(invitation);
+  /// Sendet eine Einladung für einen 1v1-Modus an einen anderen Nutzer.
+  /// Sendet eine Einladung für einen 1v1-Modus an einen anderen Nutzer.
+  /// Der Absender erhält dabei automatisch den Status "accepted".
+  Future<String> sendOneVoneInvitation({
+    required String nameSender,
+    required String nameReceiver,
+    required String uidSender,
+    required String uidReceiver,
+    String statusReceiver = 'pending',
+  }) async {
+    DocumentReference docRef = await _db.collection('onevone_invitations').add({
+      'NameSender': nameSender,
+      'NameReciever': nameReceiver,
+      'UIDSender': uidSender,
+      'UIDReceiver': uidReceiver,
+      'TimeStamp': FieldValue.serverTimestamp(),
+      'StatusSender': 'accepted', // Absenderstatus automatisch accepted
+      'StatusReceiver': statusReceiver,
+    });
+    return docRef.id;
   }
+
+/// Gibt einen Stream der eingehenden 1v1-Einladungen für den aktuellen Nutzer zurück.
+Stream<List<Map<String, dynamic>>> getIncomingOneVoneInvitationsStream() {
+  final currentUserId = getCurrentUserId();
+  if (currentUserId == null) {
+    throw Exception("Kein angemeldeter Benutzer");
+  }
+  return _db
+      .collection('onevone_invitations')
+      .where('UIDReceiver', isEqualTo: currentUserId)
+      .where('StatusReceiver', isEqualTo: 'pending')
+      .snapshots()
+      .map((querySnapshot) => querySnapshot.docs.map((doc) {
+            return {
+              'id': doc.id,
+              ...doc.data(),
+            };
+          }).toList());
+}
+
+    /// Gibt die eingehenden 1v1-Einladungen für den aktuellen Nutzer zurück.
+  Future<List<Map<String, dynamic>>> getIncomingOneVOneInvitations() async {
+    final currentUserId = getCurrentUserId();
+    if (currentUserId == null) {
+      throw Exception("Kein angemeldeter Benutzer");
+    }
+    final querySnapshot = await _db
+        .collection('onevone_invitations')
+        .where('UIDReceiver', isEqualTo: currentUserId)
+        .where('StatusReceiver', isEqualTo: 'pending')
+        .get();
+    List<Map<String, dynamic>> invitations = querySnapshot.docs.map((doc) {
+      return {
+        'id': doc.id,
+        ...doc.data(),
+      };
+    }).toList();
+    return invitations;
+  }
+
+  /// Akzeptiert eine 1v1-Einladung.
+  Future<void> acceptOneVOneInvitation(String invitationId) async {
+    await _db.collection('onevone_invitations').doc(invitationId).update({
+      'StatusReceiver': 'accepted',
+    });
+  }
+
+  /// Lehnt eine 1v1-Einladung ab.
+  Future<void> rejectOneVOneInvitation(String invitationId) async {
+    await _db.collection('onevone_invitations').doc(invitationId).update({
+      'StatusReceiver': 'rejected',
+    });
+  }
+
+    /// Setzt beide Statusfelder der 1v1-Einladung auf 'cancelled',
+    /// um einen Abbruch für beide Spieler zu signalisieren.
+    Future<void> cancelOneVoneInvitation(String invitationId) async {
+      await _db.collection('onevone_invitations').doc(invitationId).update({
+        'StatusSender': 'cancelled',
+        'StatusReceiver': 'cancelled',
+      });
+    }
 
   // ------------------- Freundschaftsanfragen ------------------- //
 
-  // Basiskollektion für Freunde
   CollectionReference get _friendsCollection {
     final User? user = _auth.currentUser;
     if (user != null) {
@@ -378,7 +406,6 @@ class FirestoreService {
     }
   }
 
-  // Basiskollektion für eingehende Freundschaftsanfragen
   CollectionReference get _incomingFriendRequestsCollection {
     final User? user = _auth.currentUser;
     if (user != null) {
@@ -388,7 +415,6 @@ class FirestoreService {
     }
   }
 
-  // Basiskollektion für ausgehende Freundschaftsanfragen
   CollectionReference get _outgoingFriendRequestsCollection {
     final User? user = _auth.currentUser;
     if (user != null) {
@@ -398,25 +424,20 @@ class FirestoreService {
     }
   }
 
-  /// Sendet eine Freundschaftsanfrage von currentUser zu targetUserId.
   Future<void> sendFriendRequest(String targetUserId) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Keine angemeldeten Benutzer");
-
     if (currentUser.uid == targetUserId) {
       throw Exception("Du kannst dir nicht selbst eine Freundschaftsanfrage senden.");
     }
-
     final friendsDoc = await _friendsCollection.doc(targetUserId).get();
     if (friendsDoc.exists) {
       throw Exception("Dieser Benutzer ist bereits dein Freund.");
     }
-
     final outgoingRequest = await _outgoingFriendRequestsCollection.doc(targetUserId).get();
     if (outgoingRequest.exists) {
       throw Exception("Du hast bereits eine Freundschaftsanfrage an diesen Benutzer gesendet.");
     }
-
     final incomingRequest = await _db
         .collection('users')
         .doc(targetUserId)
@@ -426,7 +447,6 @@ class FirestoreService {
     if (incomingRequest.exists) {
       throw Exception("Dieser Benutzer hat dir bereits eine Freundschaftsanfrage gesendet.");
     }
-
     await _db
         .collection('users')
         .doc(targetUserId)
@@ -437,7 +457,6 @@ class FirestoreService {
           'timestamp': FieldValue.serverTimestamp(),
           'status': 'pending',
         });
-
     await _outgoingFriendRequestsCollection.doc(targetUserId).set({
       'to': targetUserId,
       'timestamp': FieldValue.serverTimestamp(),
@@ -445,62 +464,60 @@ class FirestoreService {
     });
   }
 
-  /// Akzeptiert eine Freundschaftsanfrage.
   Future<void> acceptFriendRequest(String requesterUserId) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Keine angemeldeten Benutzer");
-
     await _db.runTransaction((transaction) async {
-      final incomingRequestRef = _incomingFriendRequestsCollection.doc(requesterUserId);
+      final incomingRequestRef =
+          _incomingFriendRequestsCollection.doc(requesterUserId);
       final outgoingRequestRef = _db
           .collection('users')
           .doc(requesterUserId)
           .collection('friend_requests_outgoing')
           .doc(currentUser.uid);
-
       final requesterProfileRef = _db.collection('users').doc(requesterUserId);
       final currentUserProfileRef = _db.collection('users').doc(currentUser.uid);
-
       final incomingRequestSnap = await transaction.get(incomingRequestRef);
       if (!incomingRequestSnap.exists) {
         throw Exception("Freundschaftsanfrage existiert nicht.");
       }
-
       final requesterProfileSnap = await transaction.get(requesterProfileRef);
       final currentUserProfileSnap = await transaction.get(currentUserProfileRef);
-
       transaction.set(
         _friendsCollection.doc(requesterUserId),
         {
           'since': FieldValue.serverTimestamp(),
-          'displayName': (requesterProfileSnap.data() as Map<String, dynamic>)['profile']['displayName'] ?? 'Unbekannt',
-          'profilePicture': (requesterProfileSnap.data() as Map<String, dynamic>)['profile']['profilePicture'] ?? '',
+          'displayName': (requesterProfileSnap.data() as Map<String, dynamic>)['profile']
+                  ['displayName'] ??
+              'Unbekannt',
+          'profilePicture': (requesterProfileSnap.data() as Map<String, dynamic>)['profile']
+                  ['profilePicture'] ??
+              '',
         },
       );
-
       final requesterFriendsCollection =
           _db.collection('users').doc(requesterUserId).collection('friends');
       transaction.set(
         requesterFriendsCollection.doc(currentUser.uid),
         {
           'since': FieldValue.serverTimestamp(),
-          'displayName': (currentUserProfileSnap.data() as Map<String, dynamic>)['profile']['displayName'] ?? 'Unbekannt',
-          'profilePicture': (currentUserProfileSnap.data() as Map<String, dynamic>)['profile']['profilePicture'] ?? '',
+          'displayName': (currentUserProfileSnap.data() as Map<String, dynamic>)['profile']
+                  ['displayName'] ??
+              'Unbekannt',
+          'profilePicture': (currentUserProfileSnap.data() as Map<String, dynamic>)['profile']
+                  ['profilePicture'] ??
+              '',
         },
       );
-
       transaction.delete(incomingRequestRef);
       transaction.delete(outgoingRequestRef);
     });
-
     print("Freundschaftsanfrage von \$requesterUserId angenommen.");
   }
 
-  /// Lehnt eine Freundschaftsanfrage ab.
   Future<void> rejectFriendRequest(String requesterUserId) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Keine angemeldeten Benutzer");
-
     await _db.runTransaction((transaction) async {
       final incomingRequestRef = _incomingFriendRequestsCollection.doc(requesterUserId);
       final outgoingRequestRef = _db
@@ -508,35 +525,28 @@ class FirestoreService {
           .doc(requesterUserId)
           .collection('friend_requests_outgoing')
           .doc(currentUser.uid);
-
       final incomingRequestSnap = await transaction.get(incomingRequestRef);
       if (!incomingRequestSnap.exists) {
         throw Exception("Freundschaftsanfrage existiert nicht.");
       }
-
       transaction.delete(incomingRequestRef);
       transaction.delete(outgoingRequestRef);
     });
-
     print("Freundschaftsanfrage von \$requesterUserId abgelehnt.");
   }
 
-  /// Entfernt einen Freund aus der Freundesliste.
   Future<void> removeFriend(String friendUid) async {
     final user = _auth.currentUser;
     if (user == null) return;
-
     await _friendsCollection.doc(friendUid).delete();
     await _db.collection('users').doc(friendUid).collection('friends').doc(user.uid).delete();
   }
 
   // ------------------- Streams und Listen ------------------- //
 
-  /// Stream für die Freundesliste (Echtzeit-Updates)
   Stream<List<Map<String, dynamic>>> getFriendsStream() {
     final user = _auth.currentUser;
     if (user == null) throw Exception("Keine angemeldeten Benutzer");
-
     return _friendsCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return {
@@ -548,41 +558,30 @@ class FirestoreService {
     });
   }
 
-  /// Holt alle eingehenden Freundschaftsanfragen für den aktuellen Benutzer
   Stream<List<Map<String, dynamic>>> getIncomingFriendRequests() {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Keine angemeldeten Benutzer");
-
     return _incomingFriendRequestsCollection
         .where('status', isEqualTo: 'pending')
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => {
-              'from': doc['from'],
-              'timestamp': doc['timestamp'],
-            }).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => {'from': doc['from'], 'timestamp': doc['timestamp']}).toList());
   }
 
-  /// Holt alle ausgehenden Freundschaftsanfragen für den aktuellen Benutzer
   Stream<List<Map<String, dynamic>>> getOutgoingFriendRequests() {
     final currentUser = _auth.currentUser;
     if (currentUser == null) throw Exception("Keine angemeldeten Benutzer");
-
     return _outgoingFriendRequestsCollection
         .where('status', isEqualTo: 'pending')
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => {
-              'to': doc['to'],
-              'timestamp': doc['timestamp'],
-            }).toList());
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => {'to': doc['to'], 'timestamp': doc['timestamp']}).toList());
   }
 
-  /// Holt die Freundesliste des aktuellen Benutzers als Future
   Future<List<Map<String, dynamic>>> getFriendsList() async {
-    final user = _auth.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) return [];
-
     final friendsSnap = await _friendsCollection.get();
-
     return friendsSnap.docs.map((doc) {
       final data = doc.data();
       return {
@@ -593,7 +592,6 @@ class FirestoreService {
     }).toList();
   }
 
-  /// Holt die Profil-Daten eines Benutzers anhand der UID
   Future<Map<String, dynamic>?> getUserProfileData(String userId) async {
     try {
       DocumentSnapshot doc = await _db.collection('users').doc(userId).get();
@@ -608,11 +606,10 @@ class FirestoreService {
     }
   }
 
-  /// Fügt einen Freund zur Freundesliste hinzu (intern verwendet)
   Future<void> addFriend(String friendUid, Map<String, dynamic> friendData) async {
-    final user = _auth.currentUser;
+    final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
     await _friendsCollection.doc(friendUid).set(friendData, SetOptions(merge: true));
   }
+
 }

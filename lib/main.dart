@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:mathquiz/screens/menu/modi/daily_challenge.dart';
 import 'firebase_options.dart';
 
 import 'package:provider/provider.dart';
@@ -21,34 +20,31 @@ import 'screens/profile_edit_screen.dart';
 import 'screens/privacy_policy_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/profile_setup_screen.dart';
+import 'screens/menu/modi/daily_challenge.dart';
 
-// Spielmodi
+// Spielmodi und Freunde
 import 'screens/menu/modi/kopf_rechnen.dart';
-
-// Hinzugefügte Screens für Freundschaftsanfragen
 import 'screens/friends/friends_screen.dart';
-import 'screens/menu/modi/onevone/onevone_game_screen.dart';
+
+// 1v1 Screens
 import 'screens/menu/modi/onevone.dart';
+
+// Lernmodus
+import 'screens/menu/modi/lernen.dart';
+import 'screens/menu/modi/lernlevel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
   runApp(
     MultiProvider(
       providers: [
-        Provider<FirestoreService>(
-          create: (_) => FirestoreService(),
-        ),
-        Provider<AuthService>(
-          create: (_) => AuthService(),
-        ),
+        Provider<FirestoreService>(create: (_) => FirestoreService()),
+        Provider<AuthService>(create: (_) => AuthService()),
         ChangeNotifierProvider<AppSettings>(
-          create: (context) => AppSettings(
-            Provider.of<FirestoreService>(context, listen: false),
-          ),
+          create: (context) => AppSettings(Provider.of<FirestoreService>(context, listen: false)),
         ),
       ],
       child: const MyApp(),
@@ -58,12 +54,10 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     final appSettings = Provider.of<AppSettings>(context);
     final bool isDarkMode = (appSettings.theme == "dark");
-
     return MaterialApp(
       title: 'Math Quiz App',
       theme: isDarkMode ? _darkTheme() : _lightTheme(),
@@ -80,8 +74,11 @@ class MyApp extends StatelessWidget {
         '/kopf_rechnen': (context) => const KopfRechnenScreen(),
         '/daily_challenge': (context) => const DailyChallengeScreen(),
         '/friends': (context) => const FriendsScreen(),
+        // 1v1 Routen
         '/onevone': (context) => const OneVOneMenuScreen(),
-        '/onevone/onevone_game': (context) => const OneVOneGameScreen(invitation: {},)
+
+        '/lernen': (context) => const LearningModeScreen(),
+        //'/lernen_level': (context) => const LearningLevelScreen(),
       },
     );
   }
@@ -89,20 +86,15 @@ class MyApp extends StatelessWidget {
   ThemeData _lightTheme() {
     final base = ThemeData.light();
     return base.copyWith(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.deepPurple,
-        brightness: Brightness.light,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.light),
       textTheme: const TextTheme(
-        bodyLarge:
-            TextStyle(color: Colors.black87, decoration: TextDecoration.none),
-        bodyMedium:
-            TextStyle(color: Colors.black87, decoration: TextDecoration.none),
+        bodyLarge: TextStyle(color: Colors.black87, decoration: TextDecoration.none),
+        bodyMedium: TextStyle(color: Colors.black87, decoration: TextDecoration.none),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white, // Textfarbe
-          backgroundColor: Colors.deepPurple, // Button-Farbe
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.deepPurple,
         ),
       ),
       dropdownMenuTheme: const DropdownMenuThemeData(
@@ -114,15 +106,10 @@ class MyApp extends StatelessWidget {
   ThemeData _darkTheme() {
     final base = ThemeData.dark();
     return base.copyWith(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.deepPurple,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark),
       textTheme: const TextTheme(
-        bodyLarge:
-            TextStyle(color: Colors.white, decoration: TextDecoration.none),
-        bodyMedium:
-            TextStyle(color: Colors.white, decoration: TextDecoration.none),
+        bodyLarge: TextStyle(color: Colors.white, decoration: TextDecoration.none),
+        bodyMedium: TextStyle(color: Colors.white, decoration: TextDecoration.none),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

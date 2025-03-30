@@ -50,7 +50,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Freundschaftsanfragen'),
+            title: const Text('Freundschaftsanfragen', style: TextStyle(fontSize: 18)),
           content: _incomingRequests.isEmpty
               ? const Text('Keine neuen Anfragen.')
               : SingleChildScrollView(
@@ -82,7 +82,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CircleAvatar(
                                   backgroundImage: profilePic.isNotEmpty
@@ -92,42 +92,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        displayName.isNotEmpty
-                                            ? displayName
-                                            : 'Unbekannter Benutzer',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.purple[200], // Hintergrund
-                                              foregroundColor: Colors.white,     // Text/Icon-Farbe
-                                            ),
-                                            onPressed: () => _acceptFriendRequest(fromUid),
-                                            child: const Text('Annehmen'),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.purple[200],
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            onPressed: () => _rejectFriendRequest(fromUid),
-                                            child: const Text('Ablehnen'),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                  child: Text(
+                                    displayName.isNotEmpty ? displayName : 'Unbekannter Benutzer',
+                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
+                                ),
+                                IconButton(
+                                  onPressed: () => _acceptFriendRequest(fromUid),
+                                  icon: const Icon(Icons.check, color: Colors.green),
+                                ),
+                                IconButton(
+                                  onPressed: () => _rejectFriendRequest(fromUid),
+                                  icon: const Icon(Icons.close, color: Colors.red),
                                 ),
                               ],
                             ),
@@ -241,32 +217,28 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
             return Slidable(
               key: Key(friend['uid']),
-              endActionPane: ActionPane( // Verwende endActionPane für Swipe nach links
+              endActionPane: ActionPane(
                 motion: const ScrollMotion(),
-                extentRatio: 0.20, // Angepasst, um nur den Icon-Button Platz zu geben
+                extentRatio: 0.20,
                 children: [
                   SlidableAction(
                     onPressed: (context) => _promptRemoveFriend(friend),
                     backgroundColor: Colors.red,
-                    foregroundColor: Colors.black, // Ändere die Icon-Farbe auf schwarz
+                    foregroundColor: Colors.black,
                     icon: Icons.close,
-                    // Entferne den 'label'-Parameter, um den Text zu entfernen
-                    // label: 'Entfernen',
                   ),
                 ],
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundImage:
-                      pic.isNotEmpty ? NetworkImage(pic) : null,
+                  backgroundImage: pic.isNotEmpty ? NetworkImage(pic) : null,
                   child: pic.isEmpty ? const Icon(Icons.person) : null,
                 ),
-                title: Text(displayName),
+                title: Text(displayName, textAlign: TextAlign.center),
                 trailing: IconButton(
-                  icon: const Icon(Icons.sports_esports), // Duell-Icon
+                  icon: const Icon(Icons.sports_esports),
                   onPressed: () {
                     // Hier kannst du die Logik zum Einladen zu einem Duell implementieren
-                    // Vorerst tut es nichts
                   },
                 ),
                 onTap: () => _openFriendDetail(friend),
@@ -288,12 +260,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
           content: Text('Möchtest du ${friend['displayName']} wirklich entfernen?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Abbrechen
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Nein'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop(); // Schließen des Dialogs
+                Navigator.of(context).pop();
                 await _removeFriend(friend);
               },
               child: const Text('Ja'),
@@ -336,6 +308,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             fontSize: 16,
             decoration: TextDecoration.underline,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -343,7 +316,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Kein _filterFriends() im Build → Vermeidet "setState during build" Fehler
     return Scaffold(
       appBar: AppBar(
         title: const Text('Freunde'),
@@ -369,7 +341,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 ElevatedButton(
                   onPressed: _navigateToAddFriend,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple[300], // Helleres Lila
+                    backgroundColor: Colors.purple[300],
                     shape: const CircleBorder(),
                     padding: const EdgeInsets.all(12),
                   ),

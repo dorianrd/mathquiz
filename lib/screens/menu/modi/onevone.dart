@@ -1,253 +1,315 @@
-// lib/screens/menu/modi/onevone_menu_screen.dart
-
-import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../services/firestore_service.dart';
-import '../modi/onevone/onevone_sync_screen.dart';
+import 'onevone/onevone_waiting.dart';
 
 class OneVOneMenuScreen extends StatefulWidget {
   const OneVOneMenuScreen({Key? key}) : super(key: key);
 
   @override
-  State<OneVOneMenuScreen> createState() => _OneVOneMenuScreenState();
+  _OneVOneMenuScreenState createState() => _OneVOneMenuScreenState();
 }
 
 class _OneVOneMenuScreenState extends State<OneVOneMenuScreen> {
-  StreamSubscription? _ingameSubscription;
-  List<Map<String, dynamic>> _friendList = [];
-  List<Map<String, dynamic>> _incomingInvitations = [];
-  List<Map<String, dynamic>> _gameHistory = [];
-  String? _selectedFriendUid;
-  String? _selectedFriendName;
+  List<Map<String, dynamic>> _friends = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadFriendList();
-    _loadIncomingInvitations();
-    _loadGameHistory();
-    _startIngameListener();
+    _loadFriends();
   }
 
-  @override
-  void dispose() {
-    _ingameSubscription?.cancel();
-    super.dispose();
-  }
-
-  /// Nutzt einen Realtime-Listener, um zu prüfen, ob für den aktuellen Nutzer eine Einladung existiert,
-  /// bei der das Feld "ingame" bereits true ist – dann wird zum SyncScreen navigiert, sofern die Einladung
-  /// nicht bereits abgeschlossen ist.
-  void _startIngameListener() {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    _ingameSubscription = firestore.db
-        .collection('onevone_invitations')
-        .where('participants', arrayContains: user.uid)
-        .where('ingame', isEqualTo: true)
-        .snapshots()
-        .listen((querySnapshot) {
-      if (querySnapshot.docs.isNotEmpty) {
-        final doc = querySnapshot.docs.first;
-        if (!doc.exists) {
-          print('Dokument existiert nicht mehr.');
-          return;
-        }
-        final data = doc.data() as Map<String, dynamic>;
-        // Navigiere nur, wenn die Einladung noch nicht abgeschlossen ist.
-        if (data['status'] != 'abgeschlossen') {
-          String invitationId = doc.id;
-          _ingameSubscription?.cancel();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OneVOneSyncScreen(invitationId: invitationId),
-            ),
-          );
-        } else {
-          print('Gefundene Einladung ist bereits abgeschlossen.');
-        }
-      }
-    }, onError: (error) {
-      print('Error in _startIngameListener: $error');
-      _ingameSubscription?.cancel();
+  Future<void> _loadFriends() async {
+    setState(() {
+      _isLoading = true;
     });
-  }
-
-  Future<void> _loadFriendList() async {
-    setState(() => _isLoading = true);
     try {
-      final firestore = Provider.of<FirestoreService>(context, listen: false);
-      _friendList = await firestore.getFriendsList();
+      final firestoreService =
+          Provider.of<FirestoreService>(context, listen: false);
+      final friendsList = await firestoreService.getFriendsList();
+      setState(() {
+        _friends = friendsList;
+      });
     } catch (e) {
-      print("Fehler beim Laden der Freundesliste: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Laden der Freunde: $e')),
+      );
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _loadIncomingInvitations() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    // Hier wird gezielt nach 'toUid' gefiltert, sodass nur Einladungen erscheinen, die der Nutzer erhalten hat.
-    QuerySnapshot snapshot = await firestore.db
-      .collection('onevone_invitations')
-      .where('participants', arrayContains: user.uid)
-      .where('status', isEqualTo: 'pending')
-      .get();
-    setState(() {
-      _incomingInvitations = snapshot.docs.map((doc) {
-        var data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
-  }
-
-  Future<void> _loadGameHistory() async {
-    // Lade die Spielhistorie aus dem Nutzer-Dokument unter scores.onevone.history
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    DocumentSnapshot userDoc =
-        await firestore.db.collection('users').doc(user.uid).get();
-    Map<String, dynamic> history = {};
-    if (userDoc.exists) {
-      Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-      if (data.containsKey('scores') &&
-          data['scores'].containsKey('onevone') &&
-          data['scores']['onevone'].containsKey('history')) {
-        history = data['scores']['onevone']['history'] as Map<String, dynamic>;
-      }
+  Future<List<Map<String, dynamic>>> _loadGameHistory() async {
+    final firestoreService =
+        Provider.of<FirestoreService>(context, listen: false);
+    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
+    // Query für Spiele, bei denen der aktuelle Nutzer als Sender finished ist
+    final querySender = await firestoreService.db
+        .collection('onevone_invitations')
+        .where("UIDSender", isEqualTo: currentUserId)
+        .where("StatusSender", whereIn: ["won", "loss", "tie"])
+        .get();
+    // Query für Spiele, bei denen der aktuelle Nutzer als Receiver finished ist
+    final queryReceiver = await firestoreService.db
+        .collection('onevone_invitations')
+        .where("UIDReceiver", isEqualTo: currentUserId)
+        .where("StatusReceiver", whereIn: ["won", "loss", "tie"])
+        .get();
+    List<Map<String, dynamic>> history = [];
+    for (var doc in querySender.docs) {
+      var data = doc.data();
+      data["id"] = doc.id;
+      history.add(data);
     }
-    List<Map<String, dynamic>> gameHistory = [];
-    history.forEach((key, value) {
-      if (value is Map<String, dynamic>) {
-        var game = value;
-        game['id'] = key;
-        gameHistory.add(game);
-      }
+    for (var doc in queryReceiver.docs) {
+      var data = doc.data();
+      data["id"] = doc.id;
+      history.add(data);
+    }
+    // Sortiere nach TimeStamp (neueste zuerst), sofern vorhanden.
+    history.sort((a, b) {
+      final t1 = a["TimeStamp"] as Timestamp?;
+      final t2 = b["TimeStamp"] as Timestamp?;
+      if (t1 == null || t2 == null) return 0;
+      return t2.compareTo(t1);
     });
-    gameHistory.sort((a, b) {
-      Timestamp aTime = a['timestamp'] ?? Timestamp(0, 0);
-      Timestamp bTime = b['timestamp'] ?? Timestamp(0, 0);
-      return bTime.compareTo(aTime);
-    });
-    setState(() {
-      _gameHistory = gameHistory;
-    });
+    return history;
   }
 
-  /// Sendet eine Einladung an den ausgewählten Freund.
-  Future<void> _sendInvitation() async {
-    if (_selectedFriendUid == null) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    Map<String, dynamic> invitation = {
-      'fromUid': user.uid,
-      'fromName': user.displayName ?? 'Unbekannter',
-      'toUid': _selectedFriendUid,
-      'toName': _selectedFriendName,
-      'status': 'pending',
-      'round': 1,
-      'ingame': false, // Wird später auf true gesetzt, wenn das Spiel startet
-      'participants': [user.uid, _selectedFriendUid],
-    };
-    await firestore.sendOneVOneInvitation(invitation);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Einladung gesendet")),
-    );
-    _loadIncomingInvitations();
+  Future<void> _sendInvitation(Map<String, dynamic> friend) async {
+    final firestoreService =
+        Provider.of<FirestoreService>(context, listen: false);
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kein Nutzer angemeldet.')),
+      );
+      return;
+    }
+    final senderName = currentUser.displayName ?? 'Unbekannt';
+    final uidSender = currentUser.uid;
+    final receiverName = friend['displayName'] ?? 'Unbekannt';
+    final uidReceiver = friend['uid'];
+
+    try {
+      final invitationId = await firestoreService.sendOneVoneInvitation(
+        nameSender: senderName,
+        nameReceiver: receiverName,
+        uidSender: uidSender,
+        uidReceiver: uidReceiver,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Einladung an $receiverName gesendet.')),
+      );
+      // Navigiere in den Wartebildschirm und übergebe die Einladung-ID
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OneVOneWaitingScreen(invitationId: invitationId),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Senden der Einladung: $e')),
+      );
+    }
   }
 
-  /// Akzeptiert eine eingehende Einladung.
-  Future<void> _acceptInvitation(String invitationId) async {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    await firestore.db.collection('onevone_invitations').doc(invitationId).update({
-      'status': 'accepted',
-      'ingame': true, // Sobald angenommen, ist das Spiel ready
-    });
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OneVOneSyncScreen(invitationId: invitationId),
-      ),
-    );
+  Future<void> _acceptInvitation(Map<String, dynamic> invitation) async {
+    try {
+      final firestoreService =
+          Provider.of<FirestoreService>(context, listen: false);
+      await firestoreService.acceptOneVOneInvitation(invitation['id']);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Einladung angenommen.')),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              OneVOneWaitingScreen(invitationId: invitation['id']),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Annehmen der Einladung: $e')),
+      );
+    }
+  }
+
+  Future<void> _rejectInvitation(Map<String, dynamic> invitation) async {
+    try {
+      final firestoreService =
+          Provider.of<FirestoreService>(context, listen: false);
+      await firestoreService.rejectOneVOneInvitation(invitation['id']);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Einladung abgelehnt.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler beim Ablehnen der Einladung: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("1v1 Modus – Menü"),
+        title: const Text('1v1 Menü'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Bereich: Einladung senden
-                  const Text("Freund auswählen und einladen", style: TextStyle(fontSize: 18)),
-                  DropdownButton<String>(
-                    hint: const Text("Freund auswählen"),
-                    value: _selectedFriendUid,
-                    items: _friendList.map((friend) {
-                      return DropdownMenuItem<String>(
-                        value: friend['uid'],
-                        child: Text(friend['displayName']),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedFriendUid = value;
-                        _selectedFriendName = _friendList.firstWhere((f) => f['uid'] == value)['displayName'];
-                      });
-                    },
-                  ),
-                  ElevatedButton(
-                    onPressed: _sendInvitation,
-                    child: const Text("Einladung senden"),
-                  ),
-                  const Divider(),
-                  // Bereich: Eingehende Einladungen
-                  const Text("Eingehende Einladungen", style: TextStyle(fontSize: 18)),
-                  ..._incomingInvitations.map((invitation) {
-                    return ListTile(
-                      title: Text("Einladung von ${invitation['fromName']}"),
-                      subtitle: Text("Status: ${invitation['status']}"),
-                      trailing: ElevatedButton(
-                        onPressed: () => _acceptInvitation(invitation['id']),
-                        child: const Text("Annehmen"),
-                      ),
-                    );
-                  }).toList(),
-                  const Divider(),
-                  // Bereich: Spielverlauf (aus Nutzer-Daten)
-                  const Text("Spielverlauf", style: TextStyle(fontSize: 18)),
-                  ..._gameHistory.map((game) {
-                    return ListTile(
-                      title: Text("Spiel ${game['id']}"),
-                      subtitle: Text(
-                          "Score: ${game['score']}, Runde: ${game['round']}, Ergebnis: ${game['state']}"),
-                      trailing: Text(
-                        game.containsKey("timestamp")
-                            ? (game["timestamp"] as Timestamp).toDate().toString()
-                            : "",
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    );
-                  }).toList(),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Neuer Abschnitt: Einladungen
+                    const Text(
+                      'Einladungen',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: Provider.of<FirestoreService>(context, listen: false)
+                          .db
+                          .collection('onevone_invitations')
+                          .where('UIDReceiver',
+                              isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+                          .where('StatusReceiver', isEqualTo: 'pending')
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return const Text(
+                            "Keine Einladungen vorhanden.",
+                            textAlign: TextAlign.center,
+                          );
+                        }
+                        final invitations = snapshot.data!.docs;
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: invitations.length,
+                          itemBuilder: (context, index) {
+                            final invitation = invitations[index].data();
+                            final invitationId = invitations[index].id;
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                title: Text(
+                                  "Einladung von ${invitation['NameSender']}",
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                // Der Status wird nicht mehr angezeigt.
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.check, color: Colors.green),
+                                      onPressed: () => _acceptInvitation({'id': invitationId}),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.red),
+                                      onPressed: () => _rejectInvitation({'id': invitationId}),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Freundesliste
+                    const Text(
+                      'Freunde',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _friends.length,
+                      itemBuilder: (context, index) {
+                        final friend = _friends[index];
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                              friend['displayName'],
+                              textAlign: TextAlign.center,
+                            ),
+                            trailing: ElevatedButton(
+                              child: const Text('Einladen'),
+                              onPressed: () => _sendInvitation(friend),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    // Spielverlauf
+                    const Text(
+                      'Spielverlauf',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _loadGameHistory(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Text("Kein Spielverlauf vorhanden.", textAlign: TextAlign.center);
+                        }
+                        final history = snapshot.data!;
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: history.length,
+                          itemBuilder: (context, index) {
+                            final game = history[index];
+                            final currentUser = FirebaseAuth.instance.currentUser;
+                            final isSender = currentUser != null && currentUser.uid == game["UIDSender"];
+                            final myStatus = isSender ? game["StatusSender"] : game["StatusReceiver"];
+                            final opponentName = isSender ? game["NameReciever"] : game["NameSender"];
+                            final myScore = isSender ? game["ScoreSender"] : game["ScoreReceiver"];
+                            final opponentScore = isSender ? game["ScoreReceiver"] : game["ScoreSender"];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                title: Text(
+                                  "$myStatus".toUpperCase(),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  "Gespielt gegen $opponentName\nScore: $myScore - $opponentScore",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
     );

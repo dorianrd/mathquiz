@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart'; // Importiere FirestoreService
+import '../services/firestore_service.dart'; // FirestoreService wird benötigt
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -95,6 +95,31 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Setzt das Passwort zurück (sendet eine Passwort-Zurücksetzungs-Mail).
+  Future<void> _resetPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte gib deine E-Mail-Adresse ein.')),
+      );
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwort-Zurücksetzungs-Mail gesendet.')),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fehler: ${e.message}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unbekannter Fehler beim Zurücksetzen des Passworts.')),
+      );
+    }
+  }
+
   /// Anmeldung via Google
   Future<void> _loginWithGoogle() async {
     setState(() => _isLoading = true);
@@ -165,7 +190,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Anmelden'),
@@ -197,6 +221,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 obscureText: true,
               ),
+              const SizedBox(height: 8),
+
+              // Passwort vergessen Button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _resetPassword,
+                  child: const Text('Passwort vergessen?'),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
               // Anmelden-Button (E-Mail/Passwort)
@@ -213,7 +248,6 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
 
               // SignInButton für Google
-              // (import 'package:sign_in_button/sign_in_button.dart')
               _isLoading
                   ? const SizedBox.shrink()
                   : SignInButton(
@@ -223,7 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 10),
 
               // SignInButton für Apple
-              // (Buttons.AppleDark / Buttons.AppleLight je nach Designwunsch)
               _isLoading
                   ? const SizedBox.shrink()
                   : SignInButton(

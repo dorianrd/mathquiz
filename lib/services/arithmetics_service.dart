@@ -112,6 +112,7 @@ class ArithmeticsService {
 
   /// Gibt den zuletzt generierten Ausdruck zurück (falls benötigt).
   String? get lastDisplayedQuestion => _lastDisplayedQuestion;
+  int get getLastResult => _lastResult!;
 
   // ---------------- Hilfsmethoden ----------------
 
@@ -253,4 +254,5 @@ class _AstNode {
       return expr;
     }
   }
+
 }
