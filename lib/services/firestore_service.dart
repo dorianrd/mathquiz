@@ -234,39 +234,6 @@ class FirestoreService {
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getGlobalScores(String mode, String level) async {
-    final querySnap = await _db.collection('users').get();
-    final List<Map<String, dynamic>> result = [];
-    for (var doc in querySnap.docs) {
-      final data = doc.data();
-      final scores = data["scores"];
-      if (scores != null && scores[mode] != null) {
-        if (scores[mode] is Map<String, dynamic>) {
-          final modeData = scores[mode] as Map<String, dynamic>;
-          if (modeData["gamesettings"] != null &&
-              modeData["gamesettings"]["difficulty"] == level) {
-            final int scoreVal = (modeData["score"] as num?)?.toInt() ?? 0;
-            final int highscoreVal = (modeData["highscore"] as num?)?.toInt() ?? 0;
-            String displayName = "";
-            final profile = data["profile"];
-            if (profile is Map) {
-              displayName = profile["displayName"] ?? "Unbekannt";
-            }
-            result.add({
-              "uid": doc.id,
-              "displayName": displayName,
-              "score": scoreVal,
-              "highscore": highscoreVal,
-              "gamesettings": modeData["gamesettings"],
-            });
-          }
-        }
-      }
-    }
-    result.sort((a, b) => (b["score"] as int).compareTo(a["score"] as int));
-    return result;
-  }
-
   // ------------------- Daily Challenge Progress ------------------- //
 
   Future<void> updateDailyChallengeProgress({

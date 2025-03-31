@@ -185,108 +185,56 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
   }
 
   void _showScoreDialog() async {
-    final firestore = Provider.of<FirestoreService>(context, listen: false);
-    List<Map<String, dynamic>> globalScores = [];
-
-    try {
-      globalScores = await firestore.getGlobalScores(_gameMode, _selectedLevel);
-    } catch (e) {
-      print("Fehler beim Laden globaler Scores: $e");
-    }
-
-    int lastScore = _score;
-    await _loadHighScore();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          contentPadding: const EdgeInsets.all(16.0),
-          title: Text(
-            'Score Übersicht',
-            style: TextStyle(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+  // Reload highscore for the current user.
+  await _loadHighScore();
+  int lastScore = _score;
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        contentPadding: const EdgeInsets.all(16.0),
+        title: Text(
+          'Deine Scores',
+          style: TextStyle(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-          content: SizedBox(
-            width: 350,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16.0, top: 2.0, bottom: 2.0),
-                    child: Text(
-                      'Highscore: $_highScore',
-                      style:
-                          Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16.0, top: 2.0, bottom: 2.0),
-                    child: Text(
-                      'Letzter Score: $lastScore ($_selectedLevel)',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Freunde-Scores:',
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
-                      fontSize: 20,
+          textAlign: TextAlign.center,
+        ),
+        content: SizedBox(
+          width: 350,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Highscore: $_highScore',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (globalScores.isNotEmpty)
-                    ...globalScores.map((entry) {
-                      final name = entry["displayName"] ?? "Unbekannt";
-                      final sc = entry["score"] ?? 0;
-                      final hs = entry["highscore"] ?? 0;
-                      final diff = entry["gamesettings"]?["difficulty"] ?? "Unbekannt";
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, top: 2.0, bottom: 2.0),
-                        child: Text(
-                          "$name : $sc (Highscore: $hs) ($diff)",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      );
-                    }).toList()
-                  else
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: Text(
-                        'Keine Freunde haben gespielt.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                ],
+                textAlign: TextAlign.center,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Letzter Score: $lastScore ($_selectedLevel)',
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Schließen'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Schließen'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _showHelpDialog() {
     showDialog(

@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Bereits einen Account?'),
+                  const Text('Bereits ein Konto?'),
                   TextButton(
                     onPressed: _navigateToLogin,
                     child: const Text('Anmelden'),

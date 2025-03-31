@@ -43,23 +43,29 @@ class AuthService {
   }
 
   // Anmeldung mit Google
+  // In lib/services/auth_service.dart
   Future<User?> signInWithGoogle({String? clientId}) async {
     try {
-      // Pass clientId to the GoogleSignIn constructor
       final GoogleSignIn googleSignIn = GoogleSignIn(
         clientId: clientId,
+        scopes: ['email', 'profile', 'openid'],
       );
       
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) return null; // Abgebrochen
-
+      // Attempt silent sign-in first.
+      GoogleSignInAccount? googleUser = await googleSignIn.signInSilently();
+      
+      // If silent sign-in fails, fall back to interactive sign-in.
+      if (googleUser == null) {
+        googleUser = await googleSignIn.signIn();
+        if (googleUser == null) return null; // User cancelled.
+      }
+      
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
+      
       UserCredential result = await _auth.signInWithCredential(credential);
       return result.user;
     } catch (e) {

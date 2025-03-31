@@ -46,38 +46,38 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   }
 
   void _loadProfile() async {
-  final firestoreService = Provider.of<FirestoreService>(context, listen: false);
-  // Retrieve the user profile from Firestore.
-  final profileData = await firestoreService.getUserProfile();
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    print("No user is currently signed in.");
-    return;
-  }
-  // If the user is signed in, we can try to get a fresh download URL for the profile picture.
-  // This is useful if the user has changed their profile picture.
-  if (user != null) {
-    print("User is signed in: ${user.uid}");
-    try {
-      // Get a fresh download URL from Firebase Storage.
-      String newUrl = await FirebaseStorage.instance
-          .ref()
-          .child('users')
-          .child(user.uid)
-          .child('profile_picture.jpg')
-          .getDownloadURL();
-      print("Refreshed profile picture URL: $newUrl");
-      // Update the profile data with the fresh URL.
-      profileData['profilePicture'] = newUrl;
-    } catch (e) {
-      print("Failed to refresh profile picture URL: $e");
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    // Retrieve the user profile from Firestore.
+    final profileData = await firestoreService.getUserProfile();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print("No user is currently signed in.");
+      return;
     }
+    // If the user is signed in, we can try to get a fresh download URL for the profile picture.
+    // This is useful if the user has changed their profile picture.
+    if (user != null) {
+      print("User is signed in: ${user.uid}");
+      try {
+        // Get a fresh download URL from Firebase Storage.
+        String newUrl = await FirebaseStorage.instance
+            .ref()
+            .child('users')
+            .child(user.uid)
+            .child('profile_picture.jpg')
+            .getDownloadURL();
+        print("Refreshed profile picture URL: $newUrl");
+        // Update the profile data with the fresh URL.
+        profileData['profilePicture'] = newUrl;
+      } catch (e) {
+        print("Failed to refresh profile picture URL: $e");
+      }
+    }
+    setState(() {
+      // Wrap the updated profile data in a Future.
+      _profileFuture = Future.value(profileData);
+    });
   }
-  setState(() {
-    // Wrap the updated profile data in a Future.
-    _profileFuture = Future.value(profileData);
-  });
-}
 
   @override
   void dispose() {
@@ -357,7 +357,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Account löschen?'),
+          title: const Text('Account löschen'),
           content: const Text(
             'Möchtest du deinen Account wirklich löschen?\nDiese Aktion ist endgültig.',
           ),
@@ -458,7 +458,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                     radius: 60,
                     backgroundImage: profilePicture.isNotEmpty
                         ? NetworkImage(profilePicture)
-                        : (_imageFile != null ? FileImage(_imageFile!) : null),
+                        : (_imageFile != null ? FileImage(_imageFile!) : null) as ImageProvider<Object>?,
                     child: (profilePicture.isEmpty && _imageFile == null)
                         ? const Icon(Icons.person, size: 60)
                         : null,
@@ -476,9 +476,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    Expanded(
+                      child: Text(
                       'Name: $displayName',
                       style: Theme.of(context).textTheme.bodyLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit),
@@ -524,9 +528,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'E-Mail: $email',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                    Expanded(
+                      child: Text(
+                        'E-Mail: $email',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.edit),

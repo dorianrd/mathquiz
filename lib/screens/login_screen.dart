@@ -129,14 +129,14 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google sign-in failed: ${e.message}')),
+        SnackBar(content: Text('Google Sign-in fehlgeschlagen: ${e.message}')),
       );
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error during Google sign-in')),
+        const SnackBar(content: Text('Fehler während der Anmeldung mit Google')),
       );
-      print('General error during Google sign-in: $e');
+      print('Genereller Fehler während der Anmeldung mit Google: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -184,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final themeData = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: const Text('Anmelden zum Spiel'),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'E-Mail',
                   border: const OutlineInputBorder(),
                   labelStyle: themeData.textTheme.bodyLarge,
                 ),
@@ -207,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: 'Password',
+                  labelText: 'Passwort',
                   border: const OutlineInputBorder(),
                   labelStyle: themeData.textTheme.bodyLarge,
                 ),
@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _resetPassword,
-                  child: const Text('Forgot Password?'),
+                  child: const Text('Passwort vergessen?'),
                 ),
               ),
 
@@ -234,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: const Text('Sign In'),
+                      child: const Text('Anmelden'),
                     ),
 
               const SizedBox(height: 20),
@@ -262,10 +262,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Don’t have an account?'),
+                  const Text('Noch kein Konto?'),
                   TextButton(
                     onPressed: _navigateToRegister,
-                    child: const Text('Register'),
+                    child: const Text('Registrieren'),
                   ),
                 ],
               ),
