@@ -19,6 +19,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="google-signin-client_id" content="427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -35,4 +36,29 @@
 <body>
   <script src="flutter_bootstrap.js" async></script>
 </body>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDuFU_pFb1u5GsIFAk_lmBZolkrVyyE34",
+    authDomain: "mathquiz-51f92.firebaseapp.com",
+    projectId: "mathquiz-51f92",
+    storageBucket: "mathquiz-51f92.firebasestorage.app",
+    messagingSenderId: "427680799387",
+    appId: "1:427680799387:web:2968e967c905c402c6443e",
+    measurementId: "G-PKMKEY7WHS"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
 </html>

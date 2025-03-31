@@ -43,13 +43,17 @@ class AuthService {
   }
 
   // Anmeldung mit Google
-  Future<User?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle({String? clientId}) async {
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      // Pass clientId to the GoogleSignIn constructor
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId: clientId,
+      );
+      
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) return null; // Abgebrochen
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,

@@ -38,8 +38,3 @@ exports.createDailyChallengeExperte = onSchedule("0 0 * * *", async (event) => {
   }
   return null;
 });
-
-// Importiere die onevone-Funktionen
-const onevone = require("./onevone");
-// Exportiere die calculateFinalResult-Funktion, sodass sie deployt wird.
-exports.onGameUpdate = onevone.onGameUpdate;

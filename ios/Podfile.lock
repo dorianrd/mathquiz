@@ -1161,6 +1161,40 @@ PODS:
     - Firebase/Firestore (= 11.6.0)
     - firebase_core
     - Flutter
+  - DKImagePickerController/Core (4.3.9):
+    - DKImagePickerController/ImageDataManager
+    - DKImagePickerController/Resource
+  - DKImagePickerController/ImageDataManager (4.3.9)
+  - DKImagePickerController/PhotoGallery (4.3.9):
+    - DKImagePickerController/Core
+    - DKPhotoGallery
+  - DKImagePickerController/Resource (4.3.9)
+  - DKPhotoGallery (0.0.19):
+    - DKPhotoGallery/Core (= 0.0.19)
+    - DKPhotoGallery/Model (= 0.0.19)
+    - DKPhotoGallery/Preview (= 0.0.19)
+    - DKPhotoGallery/Resource (= 0.0.19)
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Core (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Preview
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Model (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Preview (0.0.19):
+    - DKPhotoGallery/Model
+    - DKPhotoGallery/Resource
+    - SDWebImage
+    - SwiftyGif
+  - DKPhotoGallery/Resource (0.0.19):
+    - SDWebImage
+    - SwiftyGif
+  - file_picker (0.0.1):
+    - DKImagePickerController/PhotoGallery
+    - Flutter
   - Firebase/Auth (11.6.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 11.6.0)
@@ -1403,11 +1437,13 @@ PODS:
     - SDWebImage/Core (~> 5.17)
   - sign_in_with_apple (0.0.1):
     - Flutter
+  - SwiftyGif (5.4.5)
   - Toast (4.1.1)
   - TOCropViewController (2.7.4)
 
 DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
+  - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
@@ -1424,6 +1460,8 @@ SPEC REPOS:
     - abseil
     - AppAuth
     - BoringSSL-GRPC
+    - DKImagePickerController
+    - DKPhotoGallery
     - Firebase
     - FirebaseAppCheckInterop
     - FirebaseAuth
@@ -1448,12 +1486,15 @@ SPEC REPOS:
     - RecaptchaInterop
     - SDWebImage
     - SDWebImageWebPCoder
+    - SwiftyGif
     - Toast
     - TOCropViewController
 
 EXTERNAL SOURCES:
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
+  file_picker:
+    :path: ".symlinks/plugins/file_picker/ios"
   firebase_auth:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
@@ -1480,6 +1521,9 @@ SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
   cloud_firestore: 9aa00dac1dc5d3cc93c8cb6515056b038779e06a
+  DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
+  DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
+  file_picker: 5f42b9d5580e30b57b4863f9d94b448016b702e5
   Firebase: 374a441a91ead896215703a674d58cdb3e9d772b
   firebase_auth: ecd44c57a46c4942b58f13615e0bbb178ccff47a
   firebase_core: 2337982fb78ee4d8d91e608b0a3d4f44346a93c8
@@ -1514,6 +1558,7 @@ SPEC CHECKSUMS:
   SDWebImage: 73c6079366fea25fa4bb9640d5fb58f0893facd8
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
+  SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
 

@@ -1,14 +1,12 @@
-// lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// sign_in_button-Paket für offizielle Google/Apple-Buttons
+// sign_in_button package for official Google/Apple buttons
 import 'package:sign_in_button/sign_in_button.dart';
 
 import '../services/auth_service.dart';
-import '../services/firestore_service.dart'; // FirestoreService wird benötigt
+import '../services/firestore_service.dart'; // FirestoreService is needed
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,21 +28,20 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Initialisiert die Nutzerdaten in Firestore nach erfolgreicher Anmeldung
+  /// Initializes the user data in Firestore after successful login.
   Future<void> _initializeUserData(User user) async {
     try {
       final firestoreService = Provider.of<FirestoreService>(context, listen: false);
       await firestoreService.initializeUserDocumentIfNotExists(user);
     } catch (e) {
-      print("Fehler bei der Initialisierung der Nutzerdaten: $e");
-      // Optional: Weitere Fehlerbehandlung, z.B. Snackbar anzeigen
+      print("Error initializing user data: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fehler bei der Initialisierung der Nutzerdaten.')),
+        const SnackBar(content: Text('Error initializing user data.')),
       );
     }
   }
 
-  /// Anmeldung via E-Mail und Passwort
+  /// Sign in via Email and Password.
   Future<void> _signInWithEmail() async {
     setState(() => _isLoading = true);
 
@@ -56,38 +53,33 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (user != null) {
-        // Initialisiere Nutzerdaten in Firestore
+        // Initialize user data in Firestore
         await _initializeUserData(user);
 
-        // Anmeldung erfolgreich => Weiter zur Home-Seite
+        // Successful login => Navigate to Home
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
-
-      // Häufige Fehlercodes: user-not-found, invalid-credential, wrong-password
       if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('E-Mail unbekannt oder ungültige Daten.')),
+          const SnackBar(content: Text('Email unknown or invalid credentials.')),
         );
       } else if (e.code == 'wrong-password') {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Falsches Passwort.')),
+          const SnackBar(content: Text('Wrong password.')),
         );
       } else {
-        // Andere Firebase-Fehler
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Anmeldefehler: ${e.message}')),
+          SnackBar(content: Text('Login error: ${e.message}')),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
-
-      // Unbekannter Fehler
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unbekannter Anmeldefehler.')),
+        const SnackBar(content: Text('Unknown login error.')),
       );
-      print('Allg. Fehler: $e');
+      print('General error: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -95,56 +87,56 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Setzt das Passwort zurück (sendet eine Passwort-Zurücksetzungs-Mail).
+  /// Resets the password (sends a password reset email).
   Future<void> _resetPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte gib deine E-Mail-Adresse ein.')),
+        const SnackBar(content: Text('Please enter your email address.')),
       );
       return;
     }
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwort-Zurücksetzungs-Mail gesendet.')),
+        const SnackBar(content: Text('Password reset email sent.')),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler: ${e.message}')),
+        SnackBar(content: Text('Error: ${e.message}')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unbekannter Fehler beim Zurücksetzen des Passworts.')),
+        const SnackBar(content: Text('Unknown error during password reset.')),
       );
     }
   }
 
-  /// Anmeldung via Google
+  /// Sign in via Google with explicit clientId.
   Future<void> _loginWithGoogle() async {
     setState(() => _isLoading = true);
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      final user = await authService.signInWithGoogle();
+      // Pass the clientId explicitly for web configuration.
+      final user = await authService.signInWithGoogle(clientId: "427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com");
       if (user != null) {
-        // Initialisiere Nutzerdaten in Firestore
+        // Initialize user data in Firestore
         await _initializeUserData(user);
 
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
-      // Google-spezifische Firebase-Fehler
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Google-Anmeldung fehlgeschlagen: ${e.message}')),
+        SnackBar(content: Text('Google sign-in failed: ${e.message}')),
       );
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fehler bei der Google-Anmeldung')),
+        const SnackBar(content: Text('Error during Google sign-in')),
       );
-      print('Allg. Fehler Google-Anmeldung: $e');
+      print('General error during Google sign-in: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -152,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Anmeldung via Apple (nur iOS/macOS)
+  /// Sign in via Apple (only for iOS/macOS)
   Future<void> _loginWithApple() async {
     setState(() => _isLoading = true);
 
@@ -160,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final authService = Provider.of<AuthService>(context, listen: false);
       final user = await authService.signInWithApple();
       if (user != null) {
-        // Initialisiere Nutzerdaten in Firestore
+        // Initialize user data in Firestore
         await _initializeUserData(user);
 
         Navigator.pushReplacementNamed(context, '/home');
@@ -168,14 +160,14 @@ class _LoginScreenState extends State<LoginScreen> {
     } on FirebaseAuthException catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Apple-Anmeldung fehlgeschlagen: ${e.message}')),
+        SnackBar(content: Text('Apple sign-in failed: ${e.message}')),
       );
     } catch (e) {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fehler bei der Apple-Anmeldung')),
+        const SnackBar(content: Text('Error during Apple sign-in')),
       );
-      print('Allg. Fehler Apple-Anmeldung: $e');
+      print('General error during Apple sign-in: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -192,18 +184,18 @@ class _LoginScreenState extends State<LoginScreen> {
     final themeData = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Anmelden'),
+        title: const Text('Sign In'),
       ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // E-Mail TextField
+              // Email TextField
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'E-Mail',
+                  labelText: 'Email',
                   border: const OutlineInputBorder(),
                   labelStyle: themeData.textTheme.bodyLarge,
                 ),
@@ -211,11 +203,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Passwort TextField
+              // Password TextField
               TextField(
                 controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: 'Passwort',
+                  labelText: 'Password',
                   border: const OutlineInputBorder(),
                   labelStyle: themeData.textTheme.bodyLarge,
                 ),
@@ -223,18 +215,18 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 8),
 
-              // Passwort vergessen Button
+              // "Forgot Password?" Button
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _resetPassword,
-                  child: const Text('Passwort vergessen?'),
+                  child: const Text('Forgot Password?'),
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // Anmelden-Button (E-Mail/Passwort)
+              // Sign in Button (Email/Password)
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
@@ -242,12 +234,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: const Text('Anmelden'),
+                      child: const Text('Sign In'),
                     ),
 
               const SizedBox(height: 20),
 
-              // SignInButton für Google
+              // SignInButton for Google
               _isLoading
                   ? const SizedBox.shrink()
                   : SignInButton(
@@ -256,7 +248,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
               const SizedBox(height: 10),
 
-              // SignInButton für Apple
+              // SignInButton for Apple
               _isLoading
                   ? const SizedBox.shrink()
                   : SignInButton(
@@ -266,14 +258,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 24),
 
-              // Navigation zur Registrierungsseite
+              // Navigation to Registration screen
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Noch keinen Account?'),
+                  const Text('Don’t have an account?'),
                   TextButton(
                     onPressed: _navigateToRegister,
-                    child: const Text('Registrieren'),
+                    child: const Text('Register'),
                   ),
                 ],
               ),
