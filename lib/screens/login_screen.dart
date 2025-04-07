@@ -119,7 +119,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       // Pass the clientId explicitly for web configuration.
-      final user = await authService.signInWithGoogle(clientId: "427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com");
+      final user = await authService.signInWithGoogle(
+          clientId: "427680799387-c8omd0ltb2dc4htgde4paaj8rek7hqqd.apps.googleusercontent.com");
       if (user != null) {
         // Initialize user data in Firestore
         await _initializeUserData(user);
@@ -183,14 +184,19 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final themeData = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Anmelden zum Spiel'),
-      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // Logo oben platzieren
+              Image.asset(
+                'assets/images/mathquiz_logo.png',  // Pfad zu deinem Logo
+                width: 120,
+                height: 120,
+              ),
+              const SizedBox(height: 24),
+
               // Email TextField
               TextField(
                 controller: _emailController,
@@ -248,13 +254,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
               const SizedBox(height: 10),
 
-              // SignInButton for Apple
-              _isLoading
-                  ? const SizedBox.shrink()
-                  : SignInButton(
-                      Buttons.apple,
-                      onPressed: _loginWithApple,
-                    ),
+              // SignInButton for Apple (optional)
+              // _isLoading
+              //     ? const SizedBox.shrink()
+              //     : SignInButton(
+              //         Buttons.apple,
+              //         onPressed: _loginWithApple,
+              //       ),
 
               const SizedBox(height: 24),
 

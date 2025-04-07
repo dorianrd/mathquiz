@@ -25,13 +25,13 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Wartezimmer'),
+        title: const Text('Wartezimmer'),
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
+              physics: const AlwaysScrollableScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
@@ -45,10 +45,10 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
                             .snapshots(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           }
                           if (!snapshot.hasData || !snapshot.data!.exists) {
-                            return Center(
+                            return const Center(
                               child: Text(
                                 "Einladung wurde abgebrochen.",
                                 style: TextStyle(fontSize: 16, color: Colors.black),
@@ -57,7 +57,7 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
                           }
                           final data = snapshot.data!.data();
                           if (data == null) {
-                            return Center(
+                            return const Center(
                               child: Text(
                                 "Einladung konnte nicht geladen werden.",
                                 style: TextStyle(fontSize: 16, color: Colors.black),
@@ -73,7 +73,7 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
                             Future.microtask(() {
                               Navigator.pop(context);
                             });
-                            return SizedBox();
+                            return const SizedBox();
                           }
                           
                           // Prüfen, ob beide Spieler akzeptiert haben
@@ -83,7 +83,7 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
                           // Falls beide Spieler akzeptiert haben, starte die Navigation in den Spielbildschirm
                           if (bothAccepted && !_hasNavigated) {
                             _hasNavigated = true;
-                            Future.delayed(Duration(seconds: 1), () {
+                            Future.delayed(const Duration(seconds: 1), () {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -95,37 +95,37 @@ class _OneVOneWaitingScreenState extends State<OneVOneWaitingScreen> {
                           
                           return Center(
                             child: bothAccepted
-                                ? Column(
+                                ? const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         "Beide Spieler haben akzeptiert.",
-                                        style: TextStyle(fontSize: 18, color: Colors.green),
+                                        style: TextStyle(fontSize: 18),
                                       ),
                                       SizedBox(height: 12),
                                       Text(
                                         "Warte auf Spielstart...",
-                                        style: TextStyle(fontSize: 18, color: Colors.green),
+                                        style: TextStyle(fontSize: 18),
                                       ),
                                     ],
                                   )
-                                : Text(
-                                    "Warte auf Akzeptanz durch beide Spieler...\n\nStatusSender: ${data['StatusSender']}\nStatusReceiver: ${data['StatusReceiver']}",
+                                : const Text(
+                                    "Warte auf Akzeptanz durch beide Spieler...",
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 16, color: Colors.black),
+                                    style: TextStyle(fontSize: 18),
                                   ),
                           );
                         },
                       ),
-                      SizedBox(height: 32),
+                      const SizedBox(height: 32),
                       // Cancel-Button bleibt hier am Ende des Inhalts
                       ElevatedButton.icon(
                         onPressed: () async {
                           await firestoreService.cancelOneVoneInvitation(widget.invitationId);
                           Navigator.pop(context);
                         },
-                        icon: Icon(Icons.cancel),
-                        label: Text('Abbrechen', style: TextStyle(fontSize: 16)),
+                        icon: const Icon(Icons.cancel),
+                        label: const Text('Abbrechen', style: TextStyle(fontSize: 16)),
                       ),
                     ],
                   ),

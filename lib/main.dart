@@ -31,7 +31,6 @@ import 'screens/menu/modi/onevone.dart';
 
 // Lernmodus
 import 'screens/menu/modi/lernen.dart';
-import 'screens/menu/modi/lernlevel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

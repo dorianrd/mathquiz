@@ -142,12 +142,12 @@ class _OneVOneGameScreenState extends State<OneVOneGameScreen> {
     if (isCorrect) {
       _score += 10;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Richtig! +10 Punkte')),
+        const SnackBar(content: Text('Richtig! +10 Punkte')),
       );
     } else {
       _lives--;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falsch!')),
+        const SnackBar(content: Text('Falsch!')),
       );
       if (_lives <= 0) {
         // Keine Leben mehr: Aktualisiere nur den Status des aktuellen Spielers auf "finished" und gehe in den Wartebildschirm.
@@ -199,17 +199,17 @@ class _OneVOneGameScreenState extends State<OneVOneGameScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text("1v1 Spiel")),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text("1v1 Spiel")),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("1v1 Spiel"),
+        title: const Text("1v1 Spiel"),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(40),
+          preferredSize: const Size.fromHeight(40),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
             child: Row(
@@ -223,9 +223,9 @@ class _OneVOneGameScreenState extends State<OneVOneGameScreen> {
                     );
                   }),
                 ),
-                Spacer(),
+                const Spacer(),
                 // Anzeige des aktuellen Scores
-                Text("Score: $_score", style: TextStyle(fontSize: 16)),
+                Text("Score: $_score", style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),
@@ -240,31 +240,31 @@ class _OneVOneGameScreenState extends State<OneVOneGameScreen> {
                   children: [
                     Text(
                       "Frage ${_currentQuestionIndex + 1} von ${_questions.length}",
-                      style: TextStyle(fontSize: 18),
+                      style: const TextStyle(fontSize: 18),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
                       _questions[_currentQuestionIndex],
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextField(
                       controller: _answerController,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: "Deine Antwort",
                         border: OutlineInputBorder(),
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _submitAnswer,
-                      child: Text("Antwort absenden"),
+                      child: const Text("Antwort absenden"),
                     ),
                   ],
                 )
-              : Center(child: Text("Spiel wird initialisiert...")),
+              : const Center(child: Text("Spiel wird initialisiert...")),
         ),
       ),
     );

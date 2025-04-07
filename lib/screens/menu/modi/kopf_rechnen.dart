@@ -51,7 +51,7 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
     try {
       final userScores = await firestore.getUserScores();
       setState(() {
-        _highScore = userScores[_gameMode]?[_selectedLevel]?['score'] ?? 0;
+        _highScore = userScores[_gameMode]?['highscore'] ?? 0;
       });
     } catch (e) {
       print("Fehler beim Laden des HighScores: $e");
@@ -180,61 +180,61 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
       _difficultyLocked = false;
       _currentQuestion = _arithmeticsService.generateQuestion(_selectedLevel);
       _answerController.clear();
-      _loadHighScore();
+      // Removed _loadHighScore() here to preserve the current highscore.
     });
   }
 
   void _showScoreDialog() async {
-  // Reload highscore for the current user.
-  await _loadHighScore();
-  int lastScore = _score;
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        contentPadding: const EdgeInsets.all(16.0),
-        title: Text(
-          'Deine Scores',
-          style: TextStyle(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    // Reload highscore for the current user.
+    await _loadHighScore();
+    int lastScore = _score;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: const EdgeInsets.all(16.0),
+          title: Text(
+            'Deine Scores',
+            style: TextStyle(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
-        ),
-        content: SizedBox(
-          width: 350,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Highscore: $_highScore',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Letzter Score: $lastScore ($_selectedLevel)',
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-            ],
+          content: SizedBox(
+            width: 350,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Highscore: $_highScore',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Letzter Score: $lastScore ($_selectedLevel)',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Schließen'),
-          ),
-        ],
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Schließen'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _showHelpDialog() {
     showDialog(
@@ -250,7 +250,11 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
             ),
           ),
           content: const Text(
-              'Hier finden Sie hilfreiche Informationen zum Spielmodus.'),
+              'Du hast 3 Leben.\n'
+              'Wenn du eine Frage falsch beantwortest, verlierst du ein Leben.\n'
+              'Wenn du alle Leben verloren hast, ist das Spiel vorbei.\n'
+              'Wenn du eine Frage richtig beantwortest, bekommst du einen Punkt.\n'
+              'Wenn du einen Punkt erreichst, wird dein Highscore aktualisiert.\n'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -332,6 +336,7 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   )
@@ -390,7 +395,8 @@ class _KopfRechnenScreenState extends State<KopfRechnenScreen> {
               ),
               const SizedBox(height: 32),
               Text(
-                _currentQuestion,
+                "$_currentQuestion = ?",
+                maxLines: 1,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,

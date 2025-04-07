@@ -56,10 +56,12 @@ class _LearningLevelScreenState extends State<LearningLevelScreen> {
             .doc(widget.levelId)
             .get(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting)
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
-          if (!snapshot.hasData || !snapshot.data!.exists)
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text("Level nicht gefunden."));
+          }
           final levelData = snapshot.data!.data() as Map<String, dynamic>;
           final levelNumber = levelData['level'] ?? "";
           final theme = levelData['theme'] ?? "";

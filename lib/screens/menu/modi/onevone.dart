@@ -240,6 +240,14 @@ class _OneVOneMenuScreenState extends State<OneVOneMenuScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
+                    if (_friends.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16.0),
+                        child: Text(
+                          "Füge Freunde hinzu um diesen Modus zu spielen.",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -294,7 +302,9 @@ class _OneVOneMenuScreenState extends State<OneVOneMenuScreen> {
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
                                 title: Text(
-                                  "$myStatus".toUpperCase(),
+                                  myStatus == "won" ? "GEWONNEN" : 
+                                  myStatus == "loss" ? "VERLOREN" : 
+                                  myStatus == "tie" ? "UNENTSCHIEDEN" : myStatus.toUpperCase(),
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),

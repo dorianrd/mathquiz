@@ -23,7 +23,6 @@ class ArithmeticsService {
   /// Erzeugt eine Rechenaufgabe als String, passend zum Level.
   /// Beispiel: "2 + 3 - 1", "12 / 3", evtl. einfache Klammern.
   String generateQuestion(String level) {
-    // Definiere je nach Level die möglichen Parameter:
     int bracketLimit;
     int operandCountMin;
     int operandCountMax;
@@ -31,29 +30,24 @@ class ArithmeticsService {
 
     switch (level) {
       case 'Anfänger':
-        // Keine Klammern
         bracketLimit = 0;
-        // 2..3 Operanden
         operandCountMin = 2;
         operandCountMax = 3;
         maxValue = 10; 
         break;
       case 'Fortgeschritten':
         bracketLimit = 1;
-        // 2..4 Operanden
         operandCountMin = 2;
         operandCountMax = 4;
         maxValue = 20;
         break;
       case 'Experte':
         bracketLimit = 3;
-        // 3..5 Operanden
         operandCountMin = 3;
         operandCountMax = 5;
         maxValue = 30;
         break;
       default:
-        // Fallback "Anfänger"
         bracketLimit = 0;
         operandCountMin = 2;
         operandCountMax = 3;
@@ -61,10 +55,8 @@ class ArithmeticsService {
         break;
     }
 
-    // Schleife, bis wir eine passende Aufgabe finden
     while (true) {
       final operandCount = _rnd.nextInt(operandCountMax - operandCountMin + 1) + operandCountMin;
-
       final tree = _generateAst(
         operandCount,
         maxValue,
@@ -73,32 +65,17 @@ class ArithmeticsService {
         bracketLimit: bracketLimit,
       );
       if (tree == null) continue;
-
       final eval = tree.evaluate();
       if (eval == null) continue;
-
-      // Muss ganzzahlig sein
-      if ((eval - eval.floorToDouble()).abs() > 1e-9) {
-        // Ist keine Ganzzahl
-        continue;
-      }
+      // Ensure the result is an integer.
+      if ((eval - eval.floorToDouble()).abs() > 1e-9) continue;
       final intResult = eval.toInt();
-
-      if (intResult < 0 || intResult.abs() > 999) {
-        // Zu groß/klein => unpraktisch fürs Kopfrechnen
-        continue;
-      }
-
-      // Baum -> String
+      if (intResult < 0 || intResult.abs() > 999) continue;
       String exprString = tree.toExpressionString();
-      // Äußere Klammern entfernen
       exprString = _removeOuterParens(exprString);
-
-      // Hier haben wir einen guten Ausdruck
       _lastResult = intResult;
       _lastDisplayedQuestion = exprString;
-
-      return exprString; 
+      return exprString;
     }
   }
 
@@ -110,37 +87,12 @@ class ArithmeticsService {
     return userInt == _lastResult;
   }
 
-  /// Gibt den zuletzt generierten Ausdruck zurück (falls benötigt).
   String? get lastDisplayedQuestion => _lastDisplayedQuestion;
   int get getLastResult => _lastResult!;
 
-  // ---------------- Hilfsmethoden ----------------
-
-  /// Entfernt äußerste Klammern, wenn sie das gesamte Expression umschließen.
-  String _removeOuterParens(String expr) {
-    if (expr.isEmpty) return expr;
-    if (expr.startsWith('(') && expr.endsWith(')')) {
-      // Prüfe Matching
-      int count = 0;
-      for (int i = 0; i < expr.length; i++) {
-        final ch = expr[i];
-        if (ch == '(') count++;
-        if (ch == ')') count--;
-        if (count == 0 && i < expr.length - 1) {
-          // bedeutet, Klammer schließt vorher
-          return expr; 
-        }
-      }
-      // War alles ein Paar
-      return expr.substring(1, expr.length -1);
-    }
-    return expr;
-  }
-
   _AstNode? _generateAst(
     int operandCount,
-    int maxValue,
-    {
+    int maxValue, {
       required bool allowMultiply,
       required bool allowDivide,
       required int bracketLimit,
@@ -162,20 +114,33 @@ class ArithmeticsService {
     if (allowDivide) possibleOps.add(_Operator.div);
 
     final op = possibleOps[_rnd.nextInt(possibleOps.length)];
-
     final node = _AstNode.operator(op, leftAst, rightAst);
-
-    // Evtl. Klammern, falls bracketLimit>0
-    // Simpler Ansatz: random Chance
     if (bracketLimit > 0 && _rnd.nextBool()) {
       node.hasOwnBracket = true;
       bracketLimit--;
     }
     return node;
   }
+
+  String _removeOuterParens(String expr) {
+    if (expr.isEmpty) return expr;
+    if (expr.startsWith('(') && expr.endsWith(')')) {
+      int count = 0;
+      for (int i = 0; i < expr.length; i++) {
+        final ch = expr[i];
+        if (ch == '(') count++;
+        if (ch == ')') count--;
+        if (count == 0 && i < expr.length - 1) {
+          return expr;
+        }
+      }
+      return expr.substring(1, expr.length -1);
+    }
+    return expr;
+  }
 }
 
-// ---------------- AST-KNOTEN ----------------
+/// ---------------- AST-KNOTEN ----------------
 
 enum _Operator { add, sub, mul, div }
 
@@ -217,42 +182,75 @@ class _AstNode {
         return lv * rv;
       case _Operator.div:
         if (rv == 0) return null;
-        return lv / rv;
+        // Ensure both operands are whole numbers
+        final intLv = lv.toInt();
+        final intRv = rv.toInt();
+        if (intLv.toDouble() != lv || intRv.toDouble() != rv) return null;
+        if (intLv % intRv != 0) return null;
+        return (intLv ~/ intRv).toDouble();
     }
   }
 
-  /// Baut den Ausdruck, z. B. "2 + 3" oder "(2 - 3) / 4"
-  /// Division normal via "/".
-  /// Keine äußeren Klammern, falls hasOwnBracket == true => wir packen ( ... )
+  // Helper function to determine operator precedence.
+  int _precedence(_Operator op) {
+    switch(op) {
+      case _Operator.add:
+      case _Operator.sub:
+        return 1;
+      case _Operator.mul:
+      case _Operator.div:
+        return 2;
+    }
+  }
+
+  /// Returns the expression as a String with minimal parentheses,
+  /// respecting operator precedence (multiplication and division are done before addition and subtraction).
   String toExpressionString() {
     if (isNumber) {
       return numberValue.toString();
     }
-    final leftStr = left!.toExpressionString();
-    final rightStr = right!.toExpressionString();
-
-    String middleOp;
+    
+    // Get left and right expression strings
+    String leftStr = left!.toExpressionString();
+    String rightStr = right!.toExpressionString();
+    
+    // If left child is an operator, add parentheses if its precedence is lower than the current node's precedence.
+    if (!left!.isNumber && left!.op != null) {
+      if (_precedence(left!.op!) < _precedence(op!)) {
+        leftStr = "($leftStr)";
+      }
+    }
+    
+    // For the right child, if its operator precedence is lower or equal (for non-associative operators like '-' or '/') add parentheses.
+    if (!right!.isNumber && right!.op != null) {
+      if (_precedence(right!.op!) < _precedence(op!) ||
+          (_precedence(right!.op!) == _precedence(op!) &&
+              (op == _Operator.sub || op == _Operator.div))) {
+        rightStr = "($rightStr)";
+      }
+    }
+    
+    String opSymbol;
     switch(op!) {
       case _Operator.add:
-        middleOp = " + ";
+        opSymbol = " + ";
         break;
       case _Operator.sub:
-        middleOp = " - ";
-        break;
+        opSymbol = " - ";
+        break; 
       case _Operator.mul:
-        middleOp = " * ";
+        opSymbol = " * ";
         break;
       case _Operator.div:
-        middleOp = " / ";
+        opSymbol = " / ";
         break;
     }
-
-    final expr = leftStr + middleOp + rightStr;
+    
+    final expr = leftStr + opSymbol + rightStr;
     if (hasOwnBracket) {
       return "($expr)";
     } else {
       return expr;
     }
   }
-
 }

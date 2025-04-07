@@ -14,7 +14,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Text(
-            'Hier steht die Datenschutzrichtlinie Ihrer App. Dies ist ein Platzhaltertext.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...',
+            'Hier steht zukünftig die Datenschutzrichtlinie.',
             style: TextStyle(fontSize: 16),
           ),
         ),

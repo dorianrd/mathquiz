@@ -53,7 +53,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Benachrichtigungseinstellungen Box
-            Container(
+            /* Container(
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400), // Rahmen hinzufügen
@@ -102,7 +102,7 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), */
 
             // Theme Auswahl
             DropdownButtonFormField<String>(

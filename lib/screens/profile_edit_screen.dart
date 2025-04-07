@@ -56,24 +56,22 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     }
     // If the user is signed in, we can try to get a fresh download URL for the profile picture.
     // This is useful if the user has changed their profile picture.
-    if (user != null) {
-      print("User is signed in: ${user.uid}");
-      try {
-        // Get a fresh download URL from Firebase Storage.
-        String newUrl = await FirebaseStorage.instance
-            .ref()
-            .child('users')
-            .child(user.uid)
-            .child('profile_picture.jpg')
-            .getDownloadURL();
-        print("Refreshed profile picture URL: $newUrl");
-        // Update the profile data with the fresh URL.
-        profileData['profilePicture'] = newUrl;
-      } catch (e) {
-        print("Failed to refresh profile picture URL: $e");
-      }
+    print("User is signed in: ${user.uid}");
+    try {
+      // Get a fresh download URL from Firebase Storage.
+      String newUrl = await FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(user.uid)
+          .child('profile_picture.jpg')
+          .getDownloadURL();
+      print("Refreshed profile picture URL: $newUrl");
+      // Update the profile data with the fresh URL.
+      profileData['profilePicture'] = newUrl;
+    } catch (e) {
+      print("Failed to refresh profile picture URL: $e");
     }
-    setState(() {
+      setState(() {
       // Wrap the updated profile data in a Future.
       _profileFuture = Future.value(profileData);
     });

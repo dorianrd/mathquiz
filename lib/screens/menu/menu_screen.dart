@@ -97,7 +97,10 @@ class _MenuScreenState extends State<MenuScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Math Quiz Menü'),
+        title: const Text(
+          'Math Quiz',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
@@ -111,6 +114,10 @@ class _MenuScreenState extends State<MenuScreen> {
           String scoreText;
           if (mode['title'] == 'Daily Challenge') {
             scoreText = 'Aktuelle Streak: ${score ?? 0}';
+          } else if (mode['title'] == '1v1') {
+            scoreText = 'Spiele jetzt gegen Freunde!';
+          } else if (mode['title'] == 'Lernen') {
+            scoreText = 'Lerne jetzt mit uns!';
           } else {
             scoreText = 'Letzter Score: ${score ?? 0}';
             if (difficulty != null) {

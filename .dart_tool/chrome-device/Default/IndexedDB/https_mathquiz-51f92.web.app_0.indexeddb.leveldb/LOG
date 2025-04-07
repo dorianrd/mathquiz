@@ -1,0 +1,7 @@
+2025/04/01-22:03:52.325 8303 Creating DB /private/var/folders/l4/yn28x1055h3c7gl0n_7ffz200000gn/T/flutter_tools.tATdMz/flutter_tools_chrome_device.CYMr2M/Default/IndexedDB/https_mathquiz-51f92.web.app_0.indexeddb.leveldb since it was missing.
+2025/04/01-22:03:52.327 8303 Reusing MANIFEST /private/var/folders/l4/yn28x1055h3c7gl0n_7ffz200000gn/T/flutter_tools.tATdMz/flutter_tools_chrome_device.CYMr2M/Default/IndexedDB/https_mathquiz-51f92.web.app_0.indexeddb.leveldb/MANIFEST-000001
+2025/04/01-22:03:52.331 ae03 Level-0 table #5: started
+2025/04/01-22:03:52.332 ae03 Level-0 table #5: 793 bytes OK
+2025/04/01-22:03:52.334 ae03 Delete type=0 #3
+2025/04/01-22:03:52.334 6907 Manual compaction at level-0 from '\x00\x01\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x02\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/04/01-22:03:53.936 ae03 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)
